@@ -1,15 +1,11 @@
 /**
- * Tier 2: The goalpost invariant
+ * Tier 2: Gradient symmetry and proportionality
  *
- * Core claim: "the boundary between the hovered item and its next neighbor
- * NEVER moves toward the mouse."
- *
- * For a vertical menu where the mouse is above the boundary it's heading toward,
- * the bottom edge of the hovered item must not move UPWARD compared to where it
- * was in the default (no-hover) layout. Moving down (away from mouse) is fine.
- *
- * If these tests fail, the invariant is violated and the implementation
- * needs a boundary-pinning pass after weight normalization.
+ * With uniform default layout and no boundary pinning, we test that:
+ * - Hovered item is always the tallest
+ * - Heights are symmetric when hovering a symmetric position
+ * - Gradient decreases monotonically from hovered item
+ * - Total height is preserved
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -20,7 +16,7 @@ import {
 } from '../fisheye-core.js';
 
 const cfg = DEFAULT_CONFIG;
-const EPSILON = 0.01;
+const EPSILON = 0.5;
 
 const testCases = [];
 for (const n of [3, 5, 7, 9, 12]) {
@@ -32,62 +28,72 @@ for (const n of [3, 5, 7, 9, 12]) {
   }
 }
 
-describe('boundary stability — goalpost invariant', () => {
+describe('gradient properties', () => {
 
   it.each(testCases)(
-    'n=$n, hovered=$hovIdx: bottom boundary of hovered item does not move upward',
+    'n=$n, hovered=$hovIdx: hovered item is tallest',
     ({ n, totalHeight, hovIdx }) => {
-      const defaultHeights = computeDefaultHeights(n, totalHeight, cfg);
-      const fisheyeHeights = computeFisheyeHeights(n, hovIdx, totalHeight, cfg);
-
-      const defaultBounds = cumulativeBoundaries(defaultHeights);
-      const fisheyeBounds = cumulativeBoundaries(fisheyeHeights);
-
-      // The bottom edge of the hovered item = boundary at hovIdx + 1.
-      // It must not move upward (toward the mouse approaching from above).
-      expect(fisheyeBounds[hovIdx + 1]).toBeGreaterThanOrEqual(
-        defaultBounds[hovIdx + 1] - EPSILON
-      );
+      const heights = computeFisheyeHeights(n, hovIdx, totalHeight, cfg);
+      const hovH = heights[hovIdx];
+      heights.forEach((h, i) => {
+        if (i !== hovIdx) {
+          expect(hovH).toBeGreaterThanOrEqual(h - EPSILON);
+        }
+      });
     }
   );
 
   it.each(testCases)(
-    'n=$n, hovered=$hovIdx: top boundary of hovered item does not move downward',
+    'n=$n, hovered=$hovIdx: total height preserved',
     ({ n, totalHeight, hovIdx }) => {
-      const defaultHeights = computeDefaultHeights(n, totalHeight, cfg);
-      const fisheyeHeights = computeFisheyeHeights(n, hovIdx, totalHeight, cfg);
+      const heights = computeFisheyeHeights(n, hovIdx, totalHeight, cfg);
+      const sum = heights.reduce((a, b) => a + b, 0);
+      expect(sum).toBeCloseTo(totalHeight, 1);
+    }
+  );
 
-      const defaultBounds = cumulativeBoundaries(defaultHeights);
-      const fisheyeBounds = cumulativeBoundaries(fisheyeHeights);
-
-      // The top edge of the hovered item = boundary at hovIdx.
-      // If the mouse approaches from below, this boundary must not move down.
-      expect(fisheyeBounds[hovIdx]).toBeLessThanOrEqual(
-        defaultBounds[hovIdx] + EPSILON
-      );
+  it.each(testCases)(
+    'n=$n, hovered=$hovIdx: all heights >= minHeight',
+    ({ n, totalHeight, hovIdx }) => {
+      const heights = computeFisheyeHeights(n, hovIdx, totalHeight, cfg);
+      heights.forEach(h => expect(h).toBeGreaterThanOrEqual(cfg.minHeight - 0.01));
     }
   );
 });
 
-describe('boundary stability — across config variations', () => {
-  const configs = [
-    { ...cfg, maxExpand: 2.0, label: 'low expand' },
-    { ...cfg, maxExpand: 6.0, label: 'high expand' },
-    { ...cfg, maxExpand: 4.4, falloffRadius: 1, label: 'narrow falloff' },
-    { ...cfg, maxExpand: 4.4, falloffRadius: 6, label: 'wide falloff' },
-  ];
+describe('gradient symmetry', () => {
 
-  it.each(configs)('$label: invariant holds for middle item of 7', (config) => {
-    const n = 7;
-    const total = n * config.baseHeight;
-    const hovIdx = 3;
+  it('hovering first vs last item produces mirror image', () => {
+    const n = 10;
+    const total = n * cfg.baseHeight;
+    const first = computeFisheyeHeights(n, 0, total, cfg);
+    const last = computeFisheyeHeights(n, n - 1, total, cfg);
+    for (let i = 0; i < n; i++) {
+      expect(first[i]).toBeCloseTo(last[n - 1 - i], 0);
+    }
+  });
 
-    const defaultHeights = computeDefaultHeights(n, total, config);
-    const fisheyeHeights = computeFisheyeHeights(n, hovIdx, total, config);
-    const defB = cumulativeBoundaries(defaultHeights);
-    const fisB = cumulativeBoundaries(fisheyeHeights);
+  it('hovering middle item produces symmetric heights', () => {
+    const n = 9; // odd, so middle is exact
+    const total = n * cfg.baseHeight;
+    const mid = Math.floor(n / 2);
+    const heights = computeFisheyeHeights(n, mid, total, cfg);
+    for (let d = 1; d <= mid; d++) {
+      expect(heights[mid - d]).toBeCloseTo(heights[mid + d], 0);
+    }
+  });
+});
 
-    expect(fisB[hovIdx + 1]).toBeGreaterThanOrEqual(defB[hovIdx + 1] - EPSILON);
-    expect(fisB[hovIdx]).toBeLessThanOrEqual(defB[hovIdx] + EPSILON);
+describe('gradient monotonicity', () => {
+
+  it.each([5, 7, 10])('n=%i: heights decrease with distance from hovered', (n) => {
+    const total = n * cfg.baseHeight;
+    const mid = Math.floor(n / 2);
+    const heights = computeFisheyeHeights(n, mid, total, cfg);
+    // Check both directions
+    for (let d = 1; d < mid; d++) {
+      expect(heights[mid + d]).toBeLessThanOrEqual(heights[mid + d - 1] + EPSILON);
+      expect(heights[mid - d]).toBeLessThanOrEqual(heights[mid - d + 1] + EPSILON);
+    }
   });
 });

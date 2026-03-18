@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" width="600" height="220" font-family="-apple-system, BlinkMacSystemFont, system-ui, sans-serif">
+  <style>
+    text { fill: #c0c0d0; }
+    .label { font-size: 11px; }
+    .title { font-size: 14px; font-weight: 600; fill: #e0e0f0; }
+    .dim { font-size: 11px; fill: #e94560; }
+  </style>
+
+  <!-- Left: the problem -->
+  <text x="150" y="18" text-anchor="middle" class="title">The Diagonal Problem</text>
+
+  <!-- Parent menu -->
+  <rect x="30" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="30" y="60" width="120" height="28" rx="3" fill="#533483" stroke="#7044a3"/>
+  <rect x="30" y="90" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="30" y="120" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <text x="90" y="49" text-anchor="middle" class="label">Item A</text>
+  <text x="90" y="79" text-anchor="middle" class="label" fill="#d0c0ff">Hovered ▸</text>
+  <text x="90" y="109" text-anchor="middle" class="label">Item C</text>
+  <text x="90" y="139" text-anchor="middle" class="label">Item D</text>
+
+  <!-- Flyout -->
+  <rect x="155" y="55" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="155" y="85" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="155" y="115" width="110" height="28" rx="3" fill="#e94560" opacity="0.3" stroke="#e94560"/>
+  <text x="210" y="74" text-anchor="middle" class="label">Sub 1</text>
+  <text x="210" y="104" text-anchor="middle" class="label">Sub 2</text>
+  <text x="210" y="134" text-anchor="middle" class="label" fill="#e94560">Target</text>
+
+  <!-- Diagonal path (problem) -->
+  <line x1="85" y1="74" x2="200" y2="129" stroke="#e94560" stroke-width="2" stroke-dasharray="6,4"/>
+  <!-- X mark where it crosses Item C -->
+  <text x="105" y="100" fill="#e94560" font-size="18" font-weight="bold">✕</text>
+  <text x="50" y="165" class="dim">Mouse crosses Item C</text>
+  <text x="50" y="180" class="dim">→ flyout closes!</text>
+
+  <!-- Right: the solution -->
+  <text x="450" y="18" text-anchor="middle" class="title">Steering Corridor</text>
+
+  <!-- Parent menu -->
+  <rect x="330" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="330" y="60" width="120" height="28" rx="3" fill="#533483" stroke="#7044a3"/>
+  <rect x="330" y="90" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="330" y="120" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <text x="390" y="49" text-anchor="middle" class="label">Item A</text>
+  <text x="390" y="79" text-anchor="middle" class="label" fill="#d0c0ff">Hovered ▸</text>
+  <text x="390" y="109" text-anchor="middle" class="label">Item C</text>
+  <text x="390" y="139" text-anchor="middle" class="label">Item D</text>
+
+  <!-- Flyout -->
+  <rect x="455" y="35" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="455" y="65" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="455" y="95" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="455" y="125" width="110" height="28" rx="3" fill="#e94560" opacity="0.3" stroke="#e94560"/>
+  <text x="510" y="54" text-anchor="middle" class="label">Sub 1</text>
+  <text x="510" y="84" text-anchor="middle" class="label">Sub 2</text>
+  <text x="510" y="114" text-anchor="middle" class="label">Sub 3</text>
+  <text x="510" y="144" text-anchor="middle" class="label" fill="#e94560">Target</text>
+
+  <!-- Steering corridor (trapezoid) -->
+  <polygon points="450,60 450,88 565,155 565,35" fill="#4ade80" opacity="0.08" stroke="#4ade80" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Diagonal path (success) -->
+  <line x1="385" y1="74" x2="500" y2="139" stroke="#4ade80" stroke-width="2"/>
+  <!-- Checkmark -->
+  <text x="505" y="139" fill="#4ade80" font-size="16">✓</text>
+
+  <text x="380" y="175" class="label" fill="#4ade80">Corridor expands toward flyout</text>
+  <text x="380" y="192" class="label" fill="#4ade80">Mouse-enter events suppressed</text>
+  <text x="380" y="209" class="label" fill="#4ade80">inside the safe zone</text>
+</svg>

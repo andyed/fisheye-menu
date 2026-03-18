@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#16213e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="200" height="200" rx="32" fill="url(#bg)"/>
+
+  <!-- Menu items — fisheye distortion: center item largest -->
+  <!-- Item 1 (small, top) -->
+  <rect x="30" y="28" width="140" height="14" rx="3" fill="#2a3a5c" opacity="0.7"/>
+  <rect x="36" y="32" width="50" height="6" rx="2" fill="#6070a0"/>
+
+  <!-- Item 2 (medium) -->
+  <rect x="26" y="48" width="148" height="20" rx="4" fill="#2a3a5c" opacity="0.8"/>
+  <rect x="34" y="54" width="65" height="8" rx="2" fill="#8090c0"/>
+
+  <!-- Item 3 (large — hovered) -->
+  <rect x="20" y="74" width="160" height="52" rx="6" fill="#533483"/>
+  <rect x="30" y="88" width="100" height="16" rx="3" fill="#e0d0ff"/>
+  <!-- Flyout arrow -->
+  <polygon points="162,95 172,100 162,105" fill="#e0d0ff" opacity="0.6"/>
+
+  <!-- Item 4 (medium) -->
+  <rect x="26" y="132" width="148" height="20" rx="4" fill="#2a3a5c" opacity="0.8"/>
+  <rect x="34" y="138" width="58" height="8" rx="2" fill="#8090c0"/>
+
+  <!-- Item 5 (small, bottom) -->
+  <rect x="30" y="158" width="140" height="14" rx="3" fill="#2a3a5c" opacity="0.7"/>
+  <rect x="36" y="162" width="42" height="6" rx="2" fill="#6070a0"/>
+
+  <!-- Lens arc — subtle fisheye distortion indicator -->
+  <path d="M 12,60 Q 6,100 12,140" stroke="#e94560" stroke-width="2.5" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M 188,60 Q 194,100 188,140" stroke="#e94560" stroke-width="2.5" fill="none" opacity="0.5" stroke-linecap="round"/>
+</svg>

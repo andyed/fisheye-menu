@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fisheye Flyout Menu</title>
+<title>Fisheye Flyout Menu — Interactive Demo</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -67,7 +67,7 @@
     /* height set dynamically by JS */
     min-height: 16px;
     transition: height 80ms ease-out, font-size 80ms ease-out, background 60ms ease;
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .menu-item:hover {
@@ -152,21 +152,25 @@
 <div class="menubar" id="menubar"></div>
 
 <div class="info">
-  <h1>Fisheye Flyout Menu</h1>
+  <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+    <img src="logo.svg" width="64" alt="Fisheye Flyout Menu" />
+    <div>
+      <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #e94560;">Interactive Demo</span>
+      <h1 style="margin: 0;">Fisheye Flyout Menu</h1>
+    </div>
+  </div>
   <p>
-    A Fitts's law optimization for cascading menus. Items closer to the mouse
-    get taller targets; items farther away compress. The key constraint:
-    <strong>the boundary between the current item and the next item below
-    never moves toward the mouse</strong> — the goalpost stays put.
-  </p>
-  <p>
-    Flyout submenus inherit the same behavior and maintain a direct steering
-    path from the parent item, eliminating the classic "diagonal problem"
-    of cascading menus.
+    Luxuriously usable cascading menus. Items dynamically resize based on mouse
+    proximity, applying Fitts's Law to reduce target acquisition time. Travel to
+    flyout menus is enabled with a steering corridor computed with trigonometry.
+    Mouse targets are carefully preserved even as the menu animates.
   </p>
   <p>
     Try the menus above. Taxonomies from biology, chemistry, typography,
-    and Psychodeli+ color palettes.
+    Dewey Decimal, and Psychodeli+ color palettes.
+  </p>
+  <p style="margin-top: 20px;">
+    <a href="https://github.com/andyed/fisheye-menu" style="color: #e94560; text-decoration: none; border: 1px solid #e94560; padding: 8px 16px; border-radius: 6px; font-size: 14px;">View on GitHub</a>
   </p>
 </div>
 

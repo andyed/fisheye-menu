@@ -30,11 +30,11 @@ const CONFIG = {
   // Base item height when no fisheye active
   baseHeight: 28,
   // Maximum expansion factor for the hovered item
-  maxExpand: 4.4,
+  maxExpand: 2.4,
   // Minimum compressed height (readability floor)
-  minHeight: 18,
+  minHeight: 21,
   // How many neighbors on each side get partial expansion
-  falloffRadius: 3,
+  falloffRadius: 4,
   // Transition duration in ms (CSS)
   transitionMs: 80,
   // Flyout horizontal offset from parent panel edge
@@ -46,8 +46,8 @@ const CONFIG = {
   // Separator thickness in px
   separatorThickness: 1,
   // Font size range (px)
-  baseFontSize: 13,
-  minFontSize: 11,
+  baseFontSize: 14,
+  minFontSize: 10,
 };
 
 const debugEl = document.getElementById('debug');
@@ -111,24 +111,16 @@ function createPanel(items, depth = 0) {
       el.style.borderBottom = style;
     }
 
-    el.addEventListener('mouseenter', () => onItemEnter(panel, el, item, idx, depth));
+    el.addEventListener('mouseenter', (e) => {
+      // Update lastMousePos from this event so the steering corridor
+      // check uses the actual entry position, not a stale mousemove pos
+      lastMousePos.x = e.clientX;
+      lastMousePos.y = e.clientY;
+      onItemEnter(panel, el, item, idx, depth);
+    });
 
     panel.appendChild(el);
   });
-
-  // Pre-compute max width: temporarily set all items to max font size,
-  // measure, then lock the panel width so fisheye scaling never causes reflow.
-  const maxFontSize = 13 * CONFIG.maxExpand;
-  const itemEls = Array.from(panel.querySelectorAll('.menu-item'));
-  itemEls.forEach(el => { el.style.fontSize = maxFontSize + 'px'; });
-  panel.style.position = 'absolute';
-  panel.style.visibility = 'hidden';
-  panel.style.display = 'block';
-  const measuredWidth = panel.offsetWidth;
-  panel.style.width = measuredWidth + 'px';
-  panel.style.display = '';
-  panel.style.visibility = '';
-  itemEls.forEach(el => { el.style.fontSize = '13px'; });
 
   // Mousemove on the entire panel drives fisheye redistribution
   panel.addEventListener('mousemove', (e) => onPanelMouseMove(panel, e));
@@ -140,7 +132,30 @@ function createPanel(items, depth = 0) {
   panel._totalHeight = totalHeight;
   panel._depth = depth;
 
+  // Append to DOM first (needed for offsetWidth measurement)
   document.body.appendChild(panel);
+
+  // Pre-compute max width: measure each item individually at max font size,
+  // take the widest, then lock. This avoids over-sizing for long labels that
+  // will only ever be seen at base font when they're not hovered.
+  // Actual max font: the tallest any item can get is ~1.75x baseHeight
+  // (for small menus) down to ~1.4x (large menus). Use 1.8x as safe ceiling.
+  const maxFontSize = CONFIG.baseHeight * 1.8 * 0.5;
+  const itemEls = panel._itemEls;
+  panel.style.visibility = 'hidden';
+  panel.style.display = 'block';
+  panel.style.width = 'auto';
+  let maxItemWidth = 0;
+  for (const el of itemEls) {
+    el.style.fontSize = maxFontSize + 'px';
+    maxItemWidth = Math.max(maxItemWidth, el.scrollWidth);
+    el.style.fontSize = CONFIG.baseFontSize + 'px';
+  }
+  // Add padding (12px each side) + arrow space
+  panel.style.width = (maxItemWidth + 24) + 'px';
+  panel.style.display = '';
+  panel.style.visibility = '';
+
   return panel;
 }
 
@@ -150,21 +165,23 @@ function onPanelMouseMove(panel, e) {
   const itemEls = panel._itemEls;
   if (!itemEls.length) return;
 
-  // Find which item the mouse is over by comparing Y positions
-  const panelRect = panel.getBoundingClientRect();
-  const mouseY = e.clientY - panelRect.top - 4; // account for padding
-
+  // Find which item the mouse is over using actual rendered positions.
+  // This is robust during CSS transitions where style.height and
+  // rendered height diverge.
+  const mouseY = e.clientY;
   let hoveredIdx = -1;
-  let cumY = 0;
   for (let i = 0; i < itemEls.length; i++) {
-    const h = parseFloat(itemEls[i].style.height) || CONFIG.baseHeight;
-    if (mouseY >= cumY && mouseY < cumY + h) {
+    const rect = itemEls[i].getBoundingClientRect();
+    if (mouseY >= rect.top && mouseY < rect.bottom) {
       hoveredIdx = i;
       break;
     }
-    cumY += h;
   }
 
+  // If mouse is between items (in padding/separator), keep last state
+  if (hoveredIdx < 0) return;
+
+  panel._lastHoveredIdx = hoveredIdx;
   const heights = computeFisheyeHeights(
     itemEls.length,
     hoveredIdx,
@@ -176,39 +193,41 @@ function onPanelMouseMove(panel, e) {
   updateDebug(hoveredIdx, heights);
 
   // Keep steering triangle fresh as cursor moves
-  updateSteeringTriangle(panel);
+  updateSteeringCorridor(panel);
 }
 
 function onPanelMouseLeave(panel) {
-  // Restore default top-heavy distribution
-  const itemEls = panel._itemEls;
-  const heights = computeDefaultHeights(itemEls.length, panel._totalHeight, CONFIG);
-  applyHeights(panel, heights);
-  updateDebug(-1, heights);
+  // While the menu bar is active, keep the last fisheye state.
+  // Only reset if the menu system closes entirely.
+  if (menuBarActive) return;
 }
 
 function applyHeights(panel, heights) {
   const itemEls = panel._itemEls;
-  const { baseFontSize, minFontSize, baseHeight } = CONFIG;
   for (let i = 0; i < itemEls.length; i++) {
     const h = heights[i];
     itemEls[i].style.height = h + 'px';
-    const scale = h / baseHeight;
-    itemEls[i].style.fontSize = Math.max(minFontSize, baseFontSize * scale) + 'px';
+    // Font = 50% of item height. Simple, visible, proportional.
+    itemEls[i].style.fontSize = (h * 0.5) + 'px';
   }
 }
 
-// ── Steering triangle (anti-tunneling) ─────────────────────────
+// ── Steering corridor (anti-tunneling) ─────────────────────────
 //
-// When a flyout is open, define a triangle from the current mouse
-// position to the top-left and bottom-left corners of the open flyout.
-// If the mouse is inside that triangle, it's steering toward the flyout
-// — don't close it, don't switch items, don't open a new flyout.
+// When a flyout is open, the user needs safe passage from anywhere
+// in the parent panel to any point in the flyout — without accidentally
+// triggering other parent items along the diagonal path.
 //
-// This solves the "diagonal problem" where moving toward a submenu
-// crosses other parent items and kills the flyout.
+// We define a trapezoidal corridor: two triangles that together cover
+// the region from the trigger item's vertical span (on the parent's
+// right edge) to the flyout's full height (on the flyout's left edge).
+// Any mouse position inside this corridor suppresses item-enter events.
+//
+// The corridor expands as you move right (toward the flyout), giving
+// full angular freedom to reach any flyout item from the trigger.
 
-let steeringTriangle = null;  // { cursor: {x,y}, topCorner: {x,y}, bottomCorner: {x,y} }
+let steeringCorridor = null;
+// { triggerTop, triggerBottom, triggerX, flyoutTop, flyoutBottom, flyoutX }
 let lastMousePos = { x: 0, y: 0 };
 
 document.addEventListener('mousemove', (e) => {
@@ -216,34 +235,54 @@ document.addEventListener('mousemove', (e) => {
   lastMousePos.y = e.clientY;
 });
 
-function isInSteeringTriangle(mx, my) {
-  if (!steeringTriangle) return false;
-  const { cursor, topCorner, bottomCorner } = steeringTriangle;
-  return pointInTriangle(mx, my, cursor, topCorner, bottomCorner);
+function isInSteeringCorridor(mx, my) {
+  if (!steeringCorridor) return false;
+  const { triggerTop, triggerBottom, triggerX, flyoutTop, flyoutBottom, flyoutX } = steeringCorridor;
+
+  // Must be between parent right edge and flyout left edge (horizontally)
+  const minX = Math.min(triggerX, flyoutX);
+  const maxX = Math.max(triggerX, flyoutX);
+  if (mx < minX || mx > maxX) return false;
+
+  // Lerp the vertical bounds based on horizontal progress.
+  // At triggerX: allowed range is [triggerTop, triggerBottom]
+  // At flyoutX: allowed range is [flyoutTop, flyoutBottom]
+  // In between: linearly interpolate — the corridor expands as you
+  // move toward the flyout.
+  const dx = flyoutX - triggerX;
+  if (Math.abs(dx) < 1) return true; // panels overlapping, allow all
+  const t = (mx - triggerX) / dx;
+
+  const allowedTop = triggerTop + (flyoutTop - triggerTop) * t;
+  const allowedBottom = triggerBottom + (flyoutBottom - triggerBottom) * t;
+
+  // Add vertical padding for motor imprecision
+  return my >= allowedTop - 20 && my <= allowedBottom + 20;
 }
 
-function updateSteeringTriangle(parentPanel) {
-  // Find the deepest open flyout that's a child of this panel
+function updateSteeringCorridor(parentPanel) {
   const parentDepth = parseInt(parentPanel.dataset.depth);
   const childPanel = openMenus.find(p => parseInt(p.dataset.depth) === parentDepth + 1);
   if (!childPanel) {
-    steeringTriangle = null;
+    steeringCorridor = null;
     return;
   }
 
   const flyoutRect = childPanel.getBoundingClientRect();
   const parentRect = parentPanel.getBoundingClientRect();
 
-  // Triangle: from current mouse pos to the near edge of the flyout.
-  // If flyout is to the right, corners are top-left and bottom-left of flyout.
-  // If flyout is to the left, corners are top-right and bottom-right.
   const flyoutIsRight = flyoutRect.left >= parentRect.left;
-  const nearX = flyoutIsRight ? flyoutRect.left : flyoutRect.right;
 
-  steeringTriangle = {
-    cursor: { x: lastMousePos.x, y: lastMousePos.y },
-    topCorner: { x: nearX, y: flyoutRect.top },
-    bottomCorner: { x: nearX, y: flyoutRect.bottom },
+  // Use the full parent panel height as the corridor's left edge.
+  // This lets the user move from anywhere in the parent to anywhere
+  // in the flyout without the corridor cutting them off.
+  steeringCorridor = {
+    triggerTop: parentRect.top,
+    triggerBottom: parentRect.bottom,
+    triggerX: flyoutIsRight ? parentRect.right : parentRect.left,
+    flyoutTop: flyoutRect.top,
+    flyoutBottom: flyoutRect.bottom,
+    flyoutX: flyoutIsRight ? flyoutRect.left : flyoutRect.right,
   };
 }
 
@@ -253,13 +292,13 @@ let flyoutTimeout = null;
 
 function onItemEnter(panel, el, item, idx, depth) {
   // If steering toward an open flyout, don't close it or switch
-  if (isInSteeringTriangle(lastMousePos.x, lastMousePos.y)) {
+  if (isInSteeringCorridor(lastMousePos.x, lastMousePos.y)) {
     return;
   }
 
   // Close any flyouts deeper than this panel's depth
   closeFlyoutsAboveDepth(depth);
-  steeringTriangle = null;
+  steeringCorridor = null;
 
   if (!item.children || item.children.length === 0) return;
 
@@ -271,6 +310,9 @@ function onItemEnter(panel, el, item, idx, depth) {
 }
 
 function openFlyout(parentPanel, triggerEl, item, parentDepth) {
+  // Store trigger element on parent so steering corridor knows the origin
+  parentPanel._triggerEl = triggerEl;
+
   const childPanel = createPanel(item.children, parentDepth + 1);
   childPanel.classList.add('flyout', 'open');
 
@@ -281,8 +323,8 @@ function openFlyout(parentPanel, triggerEl, item, parentDepth) {
   let left = parentRect.right + CONFIG.flyoutGap;
   let top = triggerRect.top;
 
-  // Keep on screen
-  const panelWidth = 220;
+  // Keep on screen — use the pre-computed locked width
+  const panelWidth = parseInt(childPanel.style.width) || 220;
   if (left + panelWidth > window.innerWidth) {
     left = parentRect.left - panelWidth - CONFIG.flyoutGap;
   }
@@ -293,15 +335,16 @@ function openFlyout(parentPanel, triggerEl, item, parentDepth) {
   childPanel.style.left = left + 'px';
   childPanel.style.top = top + 'px';
 
-  // Apply default heights
-  const heights = computeDefaultHeights(childPanel._itemEls.length, childPanel._totalHeight, CONFIG);
+  // Apply initial fisheye: bias toward the first item (mouse enters
+  // from the trigger, which aligns with the flyout's top).
+  const heights = computeFisheyeHeights(childPanel._itemEls.length, 0, childPanel._totalHeight, CONFIG);
   applyHeights(childPanel, heights);
 
   openMenus.push(childPanel);
 
   // Establish steering triangle so diagonal mouse movement
   // toward the flyout doesn't accidentally close it
-  updateSteeringTriangle(parentPanel);
+  updateSteeringCorridor(parentPanel);
 }
 
 function closeFlyoutsAboveDepth(depth) {
@@ -387,8 +430,8 @@ function openTopMenu(barItem, menu) {
   panel.style.left = rect.left + 'px';
   panel.style.top = rect.bottom + 'px';
 
-  // Apply default heights
-  const heights = computeDefaultHeights(panel._itemEls.length, panel._totalHeight);
+  // Apply initial fisheye centered on first item (mouse enters from top)
+  const heights = computeFisheyeHeights(panel._itemEls.length, 0, panel._totalHeight, CONFIG);
   applyHeights(panel, heights);
 
   openMenus.push(panel);
