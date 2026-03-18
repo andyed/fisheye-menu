@@ -14,7 +14,19 @@
     background: #1a1a2e;
     color: #e0e0e0;
     min-height: 100vh;
+    transition: background 200ms ease, color 200ms ease;
   }
+
+  .fisheye-theme-light body {
+    background: #f5f5f8;
+    color: #222;
+  }
+
+  .fisheye-theme-light .info h1 { color: #7c4dff; }
+  .fisheye-theme-light .info p { color: #444; }
+  .fisheye-theme-light .info a { color: #7c4dff; border-color: #7c4dff; }
+  .fisheye-theme-light #controls select { background: #fff; color: #333; border-color: #ccc; }
+  .fisheye-theme-light #controls label { color: #555; }
 
   /* ── Demo page styles ─────────────────────────────── */
   .info {
@@ -67,6 +79,29 @@
     Try the menus above. Taxonomies from biology, chemistry, typography,
     Dewey Decimal, and Psychodeli+ color palettes.
   </p>
+  <div id="controls" style="margin-top: 24px; display: flex; gap: 20px; flex-wrap: wrap; align-items: center;">
+    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
+      Menu bar
+      <select id="opt-bar-trigger" style="background: #16213e; color: #c0c0c0; border: 1px solid #0f3460; border-radius: 4px; padding: 3px 6px; font-size: 13px;">
+        <option value="click" selected>Click to open</option>
+        <option value="hover">Hover to open</option>
+      </select>
+    </label>
+    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
+      Flyouts
+      <select id="opt-flyout-trigger" style="background: #16213e; color: #c0c0c0; border: 1px solid #0f3460; border-radius: 4px; padding: 3px 6px; font-size: 13px;">
+        <option value="hover" selected>Hover to open</option>
+        <option value="click">Click to open</option>
+      </select>
+    </label>
+    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
+      <input type="checkbox" id="opt-overlay" checked> Overlay
+    </label>
+    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
+      <input type="checkbox" id="opt-light"> Light mode
+    </label>
+  </div>
+
   <p style="margin-top: 20px;">
     <a href="https://github.com/andyed/fisheye-menu" style="color: #e94560; text-decoration: none; border: 1px solid #e94560; padding: 8px 16px; border-radius: 6px; font-size: 14px;">View on GitHub</a>
   </p>
@@ -77,11 +112,24 @@
 import { MENUS } from './menu-data.js';
 import { create } from './fisheye-menu.js';
 
-const menu = create(document.getElementById('menubar'), MENUS, {
-  debug: true,
-  overlay: true,
-  onSelect: (item) => console.log('Selected:', item.label),
-});
+let menu = null;
+
+function init() {
+  if (menu) menu.destroy();
+  menu = create(document.getElementById('menubar'), MENUS, {
+    debug: true,
+    overlay: document.getElementById('opt-overlay').checked,
+    theme: document.getElementById('opt-light').checked ? 'light' : 'dark',
+    barTrigger: document.getElementById('opt-bar-trigger').value,
+    flyoutTrigger: document.getElementById('opt-flyout-trigger').value,
+    onSelect: (item) => console.log('Selected:', item.label),
+  });
+}
+
+init();
+
+// Rebuild on any control change
+document.getElementById('controls').addEventListener('change', init);
 </script>
 </body>
 </html>

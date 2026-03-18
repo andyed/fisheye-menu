@@ -29,6 +29,8 @@ const DEFAULTS = {
   debug: false,         // Show height debug overlay
   overlay: false,       // Show background overlay when menu is open
   theme: 'dark',        // 'dark' | 'light' | null (use inherited CSS vars)
+  barTrigger: 'click',  // 'click' | 'hover' — how the menu bar opens dropdowns
+  flyoutTrigger: 'hover', // 'hover' | 'click' — how flyout submenus open
 };
 
 // ── Instance state ─────────────────────────────────────────────
@@ -117,7 +119,13 @@ function createPanel(items, depth = 0) {
     });
 
     el.addEventListener('click', () => {
-      if (!item.children?.length) selectItem(item);
+      if (item.children?.length) {
+        // Click to open flyout (works in both modes)
+        closeFlyoutsAboveDepth(depth);
+        openFlyout(panel, el, item, depth);
+      } else {
+        selectItem(item);
+      }
     });
 
     el.addEventListener('keydown', (e) => {
@@ -331,7 +339,8 @@ function isInSteeringCorridor(mx, my) {
   prevMouseX = mx;
   if (!movingRight) return false;
 
-  // In the gap between parent edge and flyout: interpolate vertical bounds
+  // Only protect the gap between parent right edge and flyout left edge.
+  // Inside the parent panel itself, item switches should always work.
   if (mx >= triggerX && mx <= flyoutX) {
     const dx = flyoutX - triggerX;
     if (Math.abs(dx) < 1) return true;
@@ -339,14 +348,6 @@ function isInSteeringCorridor(mx, my) {
     const top = triggerTop + (flyoutTop - triggerTop) * t;
     const bottom = triggerBottom + (flyoutBottom - triggerBottom) * t;
     return my >= top - 20 && my <= bottom + 20;
-  }
-
-  // In the right half of the parent panel and moving right
-  if (mx >= parentLeft && mx < triggerX) {
-    const midX = (parentLeft + triggerX) * 0.5;
-    if (mx > midX) {
-      return my >= triggerTop - 20 && my <= triggerBottom + 20;
-    }
   }
 
   return false;
@@ -392,8 +393,11 @@ function onItemEnter(panel, el, item, idx, depth) {
 
   if (!item.children?.length) return;
 
-  clearTimeout(flyoutTimeout);
-  flyoutTimeout = setTimeout(() => openFlyout(panel, el, item, depth), CONFIG.flyoutDelay);
+  // Only open flyout on hover if flyoutTrigger is 'hover'
+  if (CONFIG.flyoutTrigger === 'hover') {
+    clearTimeout(flyoutTimeout);
+    flyoutTimeout = setTimeout(() => openFlyout(panel, el, item, depth), CONFIG.flyoutDelay);
+  }
 }
 
 function openFlyout(parentPanel, triggerEl, item, parentDepth) {
@@ -410,10 +414,15 @@ function openFlyout(parentPanel, triggerEl, item, parentDepth) {
   let left = parentRect.right + CONFIG.flyoutGap;
   let top = triggerRect.top;
 
-  // Keep on screen
-  const panelWidth = parseInt(childPanel.style.width) || 220;
+  // Keep on screen — use actual rendered width
+  const panelWidth = childPanel.offsetWidth || parseInt(childPanel.style.width) || 220;
   if (left + panelWidth > window.innerWidth) {
-    left = parentRect.left - panelWidth - CONFIG.flyoutGap;
+    // Not enough room on the right — try left side of parent
+    const leftAlt = parentRect.left - panelWidth - CONFIG.flyoutGap;
+    // Only flip if left side actually has room, otherwise keep right and let it overflow
+    if (leftAlt >= 0) {
+      left = leftAlt;
+    }
   }
   if (top + childPanel._totalHeight > window.innerHeight) {
     top = Math.max(4, window.innerHeight - childPanel._totalHeight - 4);
@@ -487,16 +496,28 @@ function buildMenuBar(bar, menus) {
     barItem.addEventListener('mousedown', (e) => {
       e.preventDefault();
       barItem.focus();
-      if (activeBarItem === barItem && menuBarActive) {
-        closeAllMenus();
-      } else {
-        openTopMenu(barItem, menu);
+      if (CONFIG.barTrigger === 'click') {
+        if (activeBarItem === barItem && menuBarActive) {
+          closeAllMenus();
+        } else {
+          openTopMenu(barItem, menu);
+        }
       }
     });
 
     barItem.addEventListener('mouseenter', () => {
-      if (menuBarActive && activeBarItem !== barItem) {
+      if (CONFIG.barTrigger === 'hover') {
+        // Hover mode: open on enter
         openTopMenu(barItem, menu);
+      } else if (menuBarActive && activeBarItem !== barItem) {
+        // Click mode: hover-to-switch once already open
+        openTopMenu(barItem, menu);
+      }
+    });
+
+    barItem.addEventListener('mouseleave', () => {
+      if (CONFIG.barTrigger === 'hover' && !openMenus.length) {
+        closeAllMenus();
       }
     });
 

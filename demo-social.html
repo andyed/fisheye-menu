@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="stylesheet" href="fisheye-menu.css">
+<title>How Do You Respond to AI Progress?</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  .hero {
+    padding: 60px 40px 40px;
+    max-width: 680px;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #e94560;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .hero p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: #a0a0b0;
+    margin-bottom: 8px;
+  }
+
+  .hero .subtle {
+    font-size: 13px;
+    color: #606080;
+    margin-top: 24px;
+  }
+
+  .hero .subtle a {
+    color: #e94560;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="menubar"></div>
+
+<div class="hero" style="margin-top: 70vh;">
+  <p style="font-size: 14px; color: #8888a0;">
+    Built with <a href="https://andyed.github.io/fisheye-menu/" style="color: #e94560; text-decoration: none;">Fisheye Menu</a> — Fitts's Law optimized cascading menus.
+    <a href="https://andyed.github.io/fisheye-menu/" style="color: #e94560; text-decoration: none; margin-left: 12px;">Live Demo</a>
+    <a href="https://github.com/andyed/fisheye-menu" style="color: #e94560; text-decoration: none; margin-left: 12px;">GitHub</a>
+  </p>
+</div>
+
+<script type="module">
+import { create } from './fisheye-menu.js';
+
+const MENUS = [
+  { label: 'Respond to AI Progress', children: [
+    { label: 'Ignore', children: [
+      { label: '"It\'s just autocomplete"' },
+      { label: 'Wait for it to plateau' },
+      { label: 'Focus on what humans do best' },
+      { label: 'Check back in 2030' },
+    ]},
+    { label: 'Resist', children: [
+      { label: 'Ban it at work' },
+      { label: 'Refuse to learn the tools' },
+      { label: 'Write angry op-eds' },
+      { label: 'Insist on artisanal code' },
+    ]},
+    { label: 'Worry', children: [
+      { label: 'Doom-scroll AI Twitter' },
+      { label: 'Stockpile job skills' },
+      { label: 'Calculate years until replacement' },
+      { label: 'Subscribe to every AI newsletter' },
+    ]},
+    { label: 'Dabble', children: [
+      { label: 'ChatGPT for emails' },
+      { label: 'Copilot on easy tasks' },
+      { label: 'Generate some images' },
+      { label: '"I\'ve tried it"' },
+    ]},
+    { label: 'Embrace', children: [
+      { label: 'Integrate into daily workflow' },
+      { label: 'Learn prompt engineering' },
+      { label: 'Automate the boring stuff' },
+      { label: 'Become the team AI person' },
+      { label: 'Ship faster, think bigger' },
+    ]},
+    { label: 'Obsess', children: [
+      { label: '1-Person Startup', children: [
+        { label: 'Idea to MVP in a weekend' },
+        { label: 'AI writes the code, you own the vision' },
+        { label: 'Ship before you hire' },
+        { label: 'Ramen profitable on day one' },
+      ]},
+      { label: 'Internal Advocate', children: [
+        { label: 'Run the AI guild at work' },
+        { label: 'Build the business case nobody asked for' },
+        { label: 'Demo to every team, weekly' },
+        { label: 'Measure what you automate' },
+      ]},
+      { label: 'Vibe Coder', children: [
+        { label: 'Describe it, don\'t type it' },
+        { label: 'Iterate by conversation' },
+        { label: 'Ship things you couldn\'t before' },
+        { label: 'Code is a side effect of thinking' },
+      ]},
+      { label: 'Life Optimizer', children: [
+        { label: 'AI meal plans' },
+        { label: 'AI fitness coach' },
+        { label: 'AI tax strategy' },
+        { label: 'AI parenting advice (brave)' },
+        { label: 'Automate your entire morning' },
+      ]},
+      { label: 'Lazy Maximizer', children: [
+        { label: '80/20 everything with AI' },
+        { label: 'Never write a first draft again' },
+        { label: 'Delegate thinking to the machine' },
+        { label: 'Minimum effort, maximum output' },
+        { label: 'If it takes >5 min, automate it' },
+      ]},
+      { label: 'Open Source Builder', children: [
+        { label: 'AI-assisted contributions at 10x pace' },
+        { label: 'Build tools for the community' },
+        { label: 'Document everything (AI writes the docs)' },
+        { label: 'Maintain more repos than humanly possible' },
+      ]},
+    ]},
+  ]},
+];
+
+create(document.getElementById('menubar'), MENUS, {
+  overlay: true,
+  onSelect: (item) => console.log('You chose:', item.label),
+});
+</script>
+</body>
+</html>

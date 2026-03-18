@@ -14,6 +14,7 @@
   --fisheye-panel-shadow: rgba(0,0,0,0.5);
   --fisheye-item-text: inherit;
   --fisheye-item-hover-bg: #533483;
+  --fisheye-item-hover-text: #fff;
   --fisheye-item-trigger-bg: #3a2560;
   --fisheye-separator-color: #0f3460;
   --fisheye-focus-ring: #e94560;
@@ -32,10 +33,11 @@
   --fisheye-panel-border: #d0d0d8;
   --fisheye-panel-shadow: rgba(0,0,0,0.15);
   --fisheye-item-text: #222;
-  --fisheye-item-hover-bg: #7c4dff;
-  --fisheye-item-trigger-bg: #e8e0ff;
+  --fisheye-item-hover-bg: #5c2dd5;
+  --fisheye-item-trigger-bg: #d4c8f0;
   --fisheye-separator-color: #e0e0e8;
   --fisheye-focus-ring: #7c4dff;
+  --fisheye-item-hover-text: #fff;
   --fisheye-swatch-border: rgba(0,0,0,0.15);
   --fisheye-overlay-bg: rgba(0,0,0,0.15);
 }
@@ -125,7 +127,7 @@
 .fisheye-item:hover,
 .fisheye-item.highlighted {
   background: var(--fisheye-item-hover-bg);
-  color: #fff;
+  color: var(--fisheye-item-hover-text);
 }
 
 .fisheye-item.fisheye-trigger {
