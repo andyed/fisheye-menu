@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="logo.svg">
 <title>Fisheye Flyout Menu — Interactive Demo</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -70,8 +71,19 @@
     font-size: 14px;
   }
 
-  .menu-item:hover {
+  .menu-item:hover,
+  .menu-item.highlighted {
     background: #533483;
+  }
+
+  .menu-item:focus {
+    outline: 2px solid #e94560;
+    outline-offset: -2px;
+  }
+
+  .menubar-item:focus {
+    outline: 2px solid #e94560;
+    outline-offset: -2px;
   }
 
   .menu-item .label {

@@ -4,7 +4,7 @@
 
 ![Fisheye Flyout Menu demo showing Dewey Decimal taxonomy with 600 Technology expanded](screenshot.png)
 
-Luxuriously usable cascading menus. Items dynamically resize based on mouse proximity, applying **Fitts's Law** to reduce target acquisition time in deep menu hierarchies. Travel to the flyout menu is enabled with a free zone computed with trigonometry. Mouse targets are carefully preserved even as the menu animates.
+Luxuriously usable cascading menus. Items dynamically resize based on mouse proximity, applying **Fitts's Law** to reduce target acquisition time in deep menu hierarchies. Travel to the flyout menu is enabled with a free zone computed with trigonometry. Mouse targets are carefully preserved even as the menu animates. Full keyboard navigation with ARIA roles for screen reader accessibility.
 
 **[Live Demo](https://andyed.github.io/fisheye-menu/)**
 
@@ -36,7 +36,7 @@ The corridor boundaries are interpolated linearly using the mouse's horizontal p
 
 ## Background
 
-This approach was originally prototyped as a "fisheye menu" during Andy Edmonds' MS research at Georgia Institute of Technology, exploring mouse-position-dependent target sizing in hierarchical menus ([2005 prototype screenshot](https://www.flickr.com/photos/andyed/26420728/)). The core insight: if you make the item the user is heading toward taller, and ensure the boundaries they'd cross don't shift against them, you get faster traversal without sacrificing menu density.
+This approach was originally prototyped as a "fisheye menu" during Andy Edmonds' MS research in Human Factors at Clemson University, exploring mouse-position-dependent target sizing in hierarchical menus ([2005 prototype screenshot](https://www.flickr.com/photos/andyed/26420728/)). The core insight: if you make the item the user is heading toward taller, and ensure the boundaries they'd cross don't shift against them, you get faster traversal without sacrificing menu density.
 
 ## Configuration
 
