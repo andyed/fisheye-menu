@@ -65,14 +65,68 @@ The demo includes several real-world hierarchies for testing at various depths a
 
 ## Usage
 
-No build step. Serve the directory and open `index.html`:
+No build step. ES6 modules — import and call `create()`:
 
-```bash
-python3 -m http.server 8087
-# open http://localhost:8087
+```html
+<div id="my-menu"></div>
+
+<script type="module">
+import { create } from './fisheye-menu.js';
+
+const menu = create(document.getElementById('my-menu'), [
+  { label: 'File', children: [
+    { label: 'New' },
+    { label: 'Open' },
+    { label: 'Recent', children: [
+      { label: 'document.txt' },
+      { label: 'notes.md' },
+    ]},
+    { label: 'Save' },
+  ]},
+  { label: 'Edit', children: [
+    { label: 'Undo' },
+    { label: 'Redo' },
+    { label: 'Find' },
+  ]},
+], {
+  onSelect: (item) => console.log('Selected:', item.label),
+});
+
+// Later: menu.destroy() to clean up
+</script>
 ```
 
-ES6 modules — requires a local server (no `file://`).
+### Data format
+
+Each menu item is an object with:
+- `label` — display text (required)
+- `children` — array of child items (makes it a submenu trigger)
+- `swatch` — `[r, g, b]` array to show a color dot (optional)
+
+Use the string `'---'` for a separator.
+
+### Options
+
+All options are optional. See the [Configuration](#configuration) table for layout parameters. Additional options:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `onSelect` | `null` | `(item) => {}` — called when a leaf item is clicked or Enter'd |
+| `debug` | `false` | Show live height values in an overlay |
+
+### Cleanup
+
+`create()` returns an object with a `destroy()` method that removes all DOM elements and event listeners.
+
+### Styles
+
+Include `fisheye-menu.css` for the default dark theme:
+
+```html
+<link rel="stylesheet" href="fisheye-menu.css">
+```
+
+Or use the class names (`.menu-panel`, `.menu-item`, `.menubar-item`, etc.) as a reference for your own theme. All layout is handled by JS — the stylesheet controls appearance only. Menu panels are appended to `document.body` for correct positioning.
 
 ## License
 

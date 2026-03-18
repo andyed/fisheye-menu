@@ -1,0 +1,108 @@
+/* ── Fisheye Menu — Default Theme ─────────────────────────────── */
+/* Include this stylesheet, or use these class names as a reference */
+/* for your own theme. All layout is handled by JS; these styles   */
+/* control appearance only.                                        */
+
+/* ── Menu Bar ──────────────────────────────────── */
+.menubar {
+  display: flex;
+  background: #16213e;
+  border-bottom: 1px solid #0f3460;
+  height: 28px;
+  align-items: center;
+  font-size: 13px;
+  user-select: none;
+  position: relative;
+  z-index: 1000;
+}
+
+.menubar-item {
+  padding: 4px 12px;
+  cursor: default;
+  color: #c0c0c0;
+  position: relative;
+}
+
+.menubar-item:hover,
+.menubar-item.active {
+  background: #0f3460;
+  color: #fff;
+}
+
+.menubar-item:focus {
+  outline: 2px solid #e94560;
+  outline-offset: -2px;
+}
+
+/* ── Dropdown Panel ────────────────────────────── */
+.menu-panel {
+  position: absolute;
+  background: #1e2a4a;
+  border: 1px solid #0f3460;
+  border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  min-width: 120px;
+  padding: 4px 0;
+  z-index: 1001;
+  display: none;
+}
+
+.menu-panel.open {
+  display: block;
+}
+
+.menu-panel.flyout {
+  position: absolute;
+}
+
+/* ── Menu Item ─────────────────────────────────── */
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  cursor: default;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+  min-height: 16px;
+  transition: height 80ms ease-out, font-size 80ms ease-out, background 60ms ease;
+  font-size: 14px;
+}
+
+.menu-item:hover,
+.menu-item.highlighted {
+  background: #533483;
+}
+
+.menu-item:focus {
+  outline: 2px solid #e94560;
+  outline-offset: -2px;
+}
+
+.menu-item .label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menu-item .arrow {
+  margin-left: 12px;
+  font-size: 10px;
+  opacity: 0.5;
+}
+
+.menu-item .swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ── Separator ─────────────────────────────────── */
+.menu-separator {
+  height: 1px;
+  background: #0f3460;
+  margin: 4px 8px;
+}

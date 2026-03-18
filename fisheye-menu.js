@@ -11,12 +11,11 @@
  * events, and menu lifecycle.
  */
 
-import { MENUS } from './menu-data.js';
 import { computeFisheyeHeights, computeDefaultHeights } from './fisheye-core.js';
 
-// ── Configuration ──────────────────────────────────────────────
+// ── Default configuration ──────────────────────────────────────
 
-const CONFIG = {
+const DEFAULTS = {
   baseHeight: 28,       // Default item height (px)
   maxExpand: 2.4,       // Hovered item weight relative to base
   minHeight: 21,        // Compressed item floor (px)
@@ -26,11 +25,14 @@ const CONFIG = {
   separator: 'line',    // Item separator: false | 'line' | 'groove'
   separatorColor: 'rgba(255,255,255,0.08)',
   separatorThickness: 1,
+  onSelect: null,       // Callback: (item, path) => {} — called on leaf item selection
+  debug: false,         // Show height debug overlay
 };
 
-// ── State ──────────────────────────────────────────────────────
+// ── Instance state ─────────────────────────────────────────────
 
-const debugEl = document.getElementById('debug');
+let CONFIG = { ...DEFAULTS };
+let debugEl = null;
 let openMenus = [];
 let activeBarItem = null;
 let menuBarActive = false;
@@ -38,6 +40,7 @@ let flyoutTimeout = null;
 let lastMousePos = { x: 0, y: 0 };
 let prevMouseX = 0;
 let steeringCorridor = null;
+let boundDocMouseDown = null;
 
 document.addEventListener('mousemove', (e) => {
   lastMousePos.x = e.clientX;
@@ -110,13 +113,17 @@ function createPanel(items, depth = 0) {
       onItemEnter(panel, el, item, idx, depth);
     });
 
+    el.addEventListener('click', () => {
+      if (!item.children?.length) selectItem(item);
+    });
+
     el.addEventListener('keydown', (e) => {
       onItemKeydown(e, panel, el, item, idx, depth);
     });
 
-    // Mouse movement clears keyboard highlight
+    // Mouse movement clears keyboard highlight across all open panels
     el.addEventListener('mousemove', () => {
-      clearHighlight(panel);
+      for (const p of openMenus) clearHighlight(p);
     });
 
     panel.appendChild(el);
@@ -258,8 +265,7 @@ function onItemKeydown(e, panel, el, item, idx, depth) {
         if (childPanel) focusItem(childPanel, 0);
         el.setAttribute('aria-expanded', 'true');
       } else {
-        // Leaf item — select and close
-        closeAllMenus();
+        selectItem(item);
       }
       break;
     }
@@ -289,11 +295,19 @@ function focusItem(panel, idx) {
   updateDebug(idx, heights);
 }
 
-/** Remove highlight class from all items in a panel. */
+/** Remove keyboard highlight and focus from all items in a panel. */
 function clearHighlight(panel) {
   for (const el of panel._itemEls) {
     el.classList.remove('highlighted');
+    if (document.activeElement === el) el.blur();
   }
+}
+
+// ── Selection ──────────────────────────────────────────────────
+
+function selectItem(item) {
+  if (CONFIG.onSelect) CONFIG.onSelect(item);
+  closeAllMenus();
 }
 
 // ── Steering corridor ──────────────────────────────────────────
@@ -364,7 +378,11 @@ function updateSteeringCorridor(parentPanel) {
 // ── Flyout lifecycle ───────────────────────────────────────────
 
 function onItemEnter(panel, el, item, idx, depth) {
-  if (isInSteeringCorridor(lastMousePos.x, lastMousePos.y)) return;
+  // Only use steering corridor protection for items that have children.
+  // Leaf items (no flyout) should always close the current flyout
+  // immediately — no reason to protect passage to a flyout that
+  // this item can't open.
+  if (item.children?.length && isInSteeringCorridor(lastMousePos.x, lastMousePos.y)) return;
 
   closeFlyoutsAboveDepth(depth);
   steeringCorridor = null;
@@ -438,13 +456,12 @@ function closeAllMenus() {
 
 // ── Menu bar ───────────────────────────────────────────────────
 
-function buildMenuBar() {
-  const bar = document.getElementById('menubar');
+function buildMenuBar(bar, menus) {
   bar.setAttribute('role', 'menubar');
 
   const barItems = [];
 
-  MENUS.forEach((menu, menuIdx) => {
+  menus.forEach((menu, menuIdx) => {
     const barItem = document.createElement('div');
     barItem.className = 'menubar-item';
     barItem.textContent = menu.label;
@@ -507,11 +524,12 @@ function buildMenuBar() {
     barItems.push(barItem);
   });
 
-  document.addEventListener('mousedown', (e) => {
+  boundDocMouseDown = (e) => {
     if (menuBarActive && !e.target.closest('.menubar') && !e.target.closest('.menu-panel')) {
       closeAllMenus();
     }
-  });
+  };
+  document.addEventListener('mousedown', boundDocMouseDown);
 }
 
 function openTopMenu(barItem, menu) {
@@ -545,6 +563,40 @@ function updateDebug(hoveredIdx, heights) {
     .join('  ');
 }
 
-// ── Init ───────────────────────────────────────────────────────
+// ── Public API ─────────────────────────────────────────────────
 
-buildMenuBar();
+/**
+ * Create a fisheye menu bar.
+ *
+ * @param {HTMLElement} container - Element to build the menubar into
+ * @param {object[]} menus - Array of top-level menu descriptors:
+ *   { label: string, children: [{ label, children?, swatch? }, ...] }
+ * @param {object} [options] - Override any CONFIG defaults + callbacks:
+ *   { baseHeight, maxExpand, minHeight, falloffRadius, flyoutDelay,
+ *     separator, separatorColor, separatorThickness,
+ *     onSelect: (item) => {}, debug: false }
+ * @returns {{ destroy: () => void }}
+ */
+export function create(container, menus, options = {}) {
+  CONFIG = { ...DEFAULTS, ...options };
+
+  if (CONFIG.debug) {
+    debugEl = document.createElement('div');
+    debugEl.id = 'fisheye-debug';
+    debugEl.style.cssText = 'position:fixed;bottom:12px;right:12px;background:rgba(0,0,0,0.7);color:#888;font:11px/1.4 monospace;padding:8px 12px;border-radius:4px;pointer-events:none;z-index:9999;';
+    document.body.appendChild(debugEl);
+  }
+
+  buildMenuBar(container, menus);
+
+  return {
+    destroy() {
+      closeAllMenus();
+      if (boundDocMouseDown) {
+        document.removeEventListener('mousedown', boundDocMouseDown);
+      }
+      container.innerHTML = '';
+      if (debugEl) { debugEl.remove(); debugEl = null; }
+    }
+  };
+}
