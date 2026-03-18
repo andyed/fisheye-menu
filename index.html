@@ -77,8 +77,9 @@
 import { MENUS } from './menu-data.js';
 import { create } from './fisheye-menu.js';
 
-create(document.getElementById('menubar'), MENUS, {
+const menu = create(document.getElementById('menubar'), MENUS, {
   debug: true,
+  overlay: true,
   onSelect: (item) => console.log('Selected:', item.label),
 });
 </script>

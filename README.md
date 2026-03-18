@@ -112,6 +112,8 @@ All options are optional. See the [Configuration](#configuration) table for layo
 | Option | Default | Description |
 |--------|---------|-------------|
 | `onSelect` | `null` | `(item) => {}` — called when a leaf item is clicked or Enter'd |
+| `overlay` | `false` | Dim the background when a menu is open |
+| `theme` | `'dark'` | `'dark'`, `'light'`, or `null` to inherit your own CSS custom properties |
 | `debug` | `false` | Show live height values in an overlay |
 
 ### Cleanup
@@ -126,7 +128,7 @@ Include `fisheye-menu.css` for the default dark theme:
 <link rel="stylesheet" href="fisheye-menu.css">
 ```
 
-Or use the class names (`.menu-panel`, `.menu-item`, `.menubar-item`, etc.) as a reference for your own theme. All layout is handled by JS — the stylesheet controls appearance only. Menu panels are appended to `document.body` for correct positioning.
+The stylesheet uses CSS custom properties (`--fisheye-*`) for all colors. Override any variable on an ancestor element for custom theming, or pass `theme: null` and define your own values. All layout is handled by JS — the stylesheet controls appearance only. Menu panels are appended to `document.body` for correct positioning.
 
 ## References
 

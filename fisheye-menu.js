@@ -25,8 +25,10 @@ const DEFAULTS = {
   separator: 'line',    // Item separator: false | 'line' | 'groove'
   separatorColor: 'rgba(255,255,255,0.08)',
   separatorThickness: 1,
-  onSelect: null,       // Callback: (item, path) => {} — called on leaf item selection
+  onSelect: null,       // Callback: (item) => {} — called on leaf item selection
   debug: false,         // Show height debug overlay
+  overlay: false,       // Show background overlay when menu is open
+  theme: 'dark',        // 'dark' | 'light' | null (use inherited CSS vars)
 };
 
 // ── Instance state ─────────────────────────────────────────────
@@ -41,6 +43,7 @@ let lastMousePos = { x: 0, y: 0 };
 let prevMouseX = 0;
 let steeringCorridor = null;
 let boundDocMouseDown = null;
+let overlayEl = null;
 
 document.addEventListener('mousemove', (e) => {
   lastMousePos.x = e.clientX;
@@ -461,6 +464,7 @@ function closeAllMenus() {
   menuBarActive = false;
   steeringCorridor = null;
   clearTimeout(flyoutTimeout);
+  hideOverlay();
 }
 
 // ── Menu bar ───────────────────────────────────────────────────
@@ -562,6 +566,19 @@ function openTopMenu(barItem, menu) {
   applyHeights(panel, heights);
 
   openMenus.push(panel);
+  showOverlay();
+}
+
+// ── Background overlay ─────────────────────────────────────────
+
+function showOverlay() {
+  if (!CONFIG.overlay || !overlayEl) return;
+  overlayEl.classList.add('active');
+}
+
+function hideOverlay() {
+  if (!overlayEl) return;
+  overlayEl.classList.remove('active');
 }
 
 // ── Debug overlay ──────────────────────────────────────────────
@@ -590,6 +607,18 @@ function updateDebug(hoveredIdx, heights) {
 export function create(container, menus, options = {}) {
   CONFIG = { ...DEFAULTS, ...options };
 
+  // Apply theme class
+  if (CONFIG.theme === 'light') {
+    document.documentElement.classList.add('fisheye-theme-light');
+  }
+
+  // Create background overlay
+  if (CONFIG.overlay) {
+    overlayEl = document.createElement('div');
+    overlayEl.className = 'fisheye-overlay';
+    document.body.appendChild(overlayEl);
+  }
+
   if (CONFIG.debug) {
     debugEl = document.createElement('div');
     debugEl.id = 'fisheye-debug';
@@ -606,7 +635,9 @@ export function create(container, menus, options = {}) {
         document.removeEventListener('mousedown', boundDocMouseDown);
       }
       container.innerHTML = '';
+      if (overlayEl) { overlayEl.remove(); overlayEl = null; }
       if (debugEl) { debugEl.remove(); debugEl = null; }
+      document.documentElement.classList.remove('fisheye-theme-light');
     }
   };
 }

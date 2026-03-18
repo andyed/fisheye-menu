@@ -1,13 +1,65 @@
-/* ── Fisheye Menu — Default Theme ─────────────────────────────── */
-/* Include this stylesheet, or use these class names as a reference */
-/* for your own theme. All layout is handled by JS; these styles   */
-/* control appearance only.                                        */
+/* ── Fisheye Menu — Themeable Stylesheet ──────────────────────── */
+/* Uses CSS custom properties. Override with .fisheye-theme-light  */
+/* or define your own values on any ancestor element.              */
 
-/* ── Menu Bar ──────────────────────────────────── */
+/* ── Dark theme (default) ────────────────────────── */
+:root {
+  --fisheye-bar-bg: #16213e;
+  --fisheye-bar-border: #0f3460;
+  --fisheye-bar-text: #c0c0c0;
+  --fisheye-bar-hover-bg: #0f3460;
+  --fisheye-bar-hover-text: #fff;
+  --fisheye-panel-bg: #1e2a4a;
+  --fisheye-panel-border: #0f3460;
+  --fisheye-panel-shadow: rgba(0,0,0,0.5);
+  --fisheye-item-text: inherit;
+  --fisheye-item-hover-bg: #533483;
+  --fisheye-item-trigger-bg: #3a2560;
+  --fisheye-separator-color: #0f3460;
+  --fisheye-focus-ring: #e94560;
+  --fisheye-swatch-border: rgba(255,255,255,0.15);
+  --fisheye-overlay-bg: rgba(0,0,0,0.4);
+}
+
+/* ── Light theme ─────────────────────────────────── */
+.fisheye-theme-light {
+  --fisheye-bar-bg: #f0f0f4;
+  --fisheye-bar-border: #d0d0d8;
+  --fisheye-bar-text: #333;
+  --fisheye-bar-hover-bg: #ddd;
+  --fisheye-bar-hover-text: #000;
+  --fisheye-panel-bg: #fff;
+  --fisheye-panel-border: #d0d0d8;
+  --fisheye-panel-shadow: rgba(0,0,0,0.15);
+  --fisheye-item-text: #222;
+  --fisheye-item-hover-bg: #7c4dff;
+  --fisheye-item-trigger-bg: #e8e0ff;
+  --fisheye-separator-color: #e0e0e8;
+  --fisheye-focus-ring: #7c4dff;
+  --fisheye-swatch-border: rgba(0,0,0,0.15);
+  --fisheye-overlay-bg: rgba(0,0,0,0.15);
+}
+
+/* ── Overlay ─────────────────────────────────────── */
+.fisheye-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--fisheye-overlay-bg);
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.fisheye-overlay.active {
+  opacity: 1;
+}
+
+/* ── Menu Bar ────────────────────────────────────── */
 .fisheye-menubar {
   display: flex;
-  background: #16213e;
-  border-bottom: 1px solid #0f3460;
+  background: var(--fisheye-bar-bg);
+  border-bottom: 1px solid var(--fisheye-bar-border);
   height: 28px;
   align-items: center;
   font-size: 13px;
@@ -19,28 +71,28 @@
 .fisheye-menubar-item {
   padding: 4px 12px;
   cursor: default;
-  color: #c0c0c0;
+  color: var(--fisheye-bar-text);
   position: relative;
 }
 
 .fisheye-menubar-item:hover,
 .fisheye-menubar-item.active {
-  background: #0f3460;
-  color: #fff;
+  background: var(--fisheye-bar-hover-bg);
+  color: var(--fisheye-bar-hover-text);
 }
 
 .fisheye-menubar-item:focus {
-  outline: 2px solid #e94560;
+  outline: 2px solid var(--fisheye-focus-ring);
   outline-offset: -2px;
 }
 
-/* ── Dropdown Panel ────────────────────────────── */
+/* ── Dropdown Panel ──────────────────────────────── */
 .fisheye-panel {
   position: absolute;
-  background: #1e2a4a;
-  border: 1px solid #0f3460;
+  background: var(--fisheye-panel-bg);
+  border: 1px solid var(--fisheye-panel-border);
   border-radius: 4px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 32px var(--fisheye-panel-shadow);
   min-width: 120px;
   padding: 4px 0;
   z-index: 1001;
@@ -55,7 +107,7 @@
   position: absolute;
 }
 
-/* ── Menu Item ─────────────────────────────────── */
+/* ── Menu Item ───────────────────────────────────── */
 .fisheye-item {
   display: flex;
   align-items: center;
@@ -67,19 +119,21 @@
   min-height: 16px;
   transition: height 80ms ease-out, font-size 80ms ease-out, background 60ms ease;
   font-size: 14px;
+  color: var(--fisheye-item-text);
 }
 
 .fisheye-item:hover,
 .fisheye-item.highlighted {
-  background: #533483;
+  background: var(--fisheye-item-hover-bg);
+  color: #fff;
 }
 
 .fisheye-item.fisheye-trigger {
-  background: #3a2560;
+  background: var(--fisheye-item-trigger-bg);
 }
 
 .fisheye-item:focus {
-  outline: 2px solid #e94560;
+  outline: 2px solid var(--fisheye-focus-ring);
   outline-offset: -2px;
 }
 
@@ -101,12 +155,12 @@
   border-radius: 3px;
   margin-right: 8px;
   flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.15);
+  border: 1px solid var(--fisheye-swatch-border);
 }
 
-/* ── Separator ─────────────────────────────────── */
+/* ── Separator ───────────────────────────────────── */
 .fisheye-separator {
   height: 1px;
-  background: #0f3460;
+  background: var(--fisheye-separator-color);
   margin: 4px 8px;
 }
