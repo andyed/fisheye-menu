@@ -4,7 +4,7 @@
 /* control appearance only.                                        */
 
 /* ── Menu Bar ──────────────────────────────────── */
-.menubar {
+.fisheye-menubar {
   display: flex;
   background: #16213e;
   border-bottom: 1px solid #0f3460;
@@ -16,26 +16,26 @@
   z-index: 1000;
 }
 
-.menubar-item {
+.fisheye-menubar-item {
   padding: 4px 12px;
   cursor: default;
   color: #c0c0c0;
   position: relative;
 }
 
-.menubar-item:hover,
-.menubar-item.active {
+.fisheye-menubar-item:hover,
+.fisheye-menubar-item.active {
   background: #0f3460;
   color: #fff;
 }
 
-.menubar-item:focus {
+.fisheye-menubar-item:focus {
   outline: 2px solid #e94560;
   outline-offset: -2px;
 }
 
 /* ── Dropdown Panel ────────────────────────────── */
-.menu-panel {
+.fisheye-panel {
   position: absolute;
   background: #1e2a4a;
   border: 1px solid #0f3460;
@@ -47,16 +47,16 @@
   display: none;
 }
 
-.menu-panel.open {
+.fisheye-panel.open {
   display: block;
 }
 
-.menu-panel.flyout {
+.fisheye-panel.flyout {
   position: absolute;
 }
 
 /* ── Menu Item ─────────────────────────────────── */
-.menu-item {
+.fisheye-item {
   display: flex;
   align-items: center;
   padding: 0 12px;
@@ -69,29 +69,33 @@
   font-size: 14px;
 }
 
-.menu-item:hover,
-.menu-item.highlighted {
+.fisheye-item:hover,
+.fisheye-item.highlighted {
   background: #533483;
 }
 
-.menu-item:focus {
+.fisheye-item.fisheye-trigger {
+  background: #3a2560;
+}
+
+.fisheye-item:focus {
   outline: 2px solid #e94560;
   outline-offset: -2px;
 }
 
-.menu-item .label {
+.fisheye-item .label {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.menu-item .arrow {
+.fisheye-item .arrow {
   margin-left: 12px;
   font-size: 10px;
   opacity: 0.5;
 }
 
-.menu-item .swatch {
+.fisheye-item .swatch {
   width: 14px;
   height: 14px;
   border-radius: 3px;
@@ -101,7 +105,7 @@
 }
 
 /* ── Separator ─────────────────────────────────── */
-.menu-separator {
+.fisheye-separator {
   height: 1px;
   background: #0f3460;
   margin: 4px 8px;

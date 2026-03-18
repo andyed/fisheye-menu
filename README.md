@@ -32,7 +32,7 @@ This implementation computes a **steering corridor** — a trapezoidal safe zone
 
 The corridor boundaries are interpolated linearly using the mouse's horizontal progress between the parent panel edge and the flyout edge. Vertical padding adds forgiveness for motor imprecision.
 
-(This class of technique was independently discovered by Amazon for their mega-menu dropdown, patented in 2013, patent now expired.)
+This is a well-known technique in HCI, predating Amazon's 2013 patent (now expired) on a specific mega-menu implementation. The geometric insight — protect the user's diagonal path to a submenu — follows directly from Fitts's and Accot-Zhai's steering law research and was taught in human factors curricula by the early 1990s.
 
 ## Background
 

@@ -56,7 +56,7 @@ document.addEventListener('mousemove', (e) => {
  */
 function createPanel(items, depth = 0) {
   const panel = document.createElement('div');
-  panel.className = 'menu-panel';
+  panel.className = 'fisheye-panel';
   panel.dataset.depth = depth;
   panel.setAttribute('role', 'menu');
 
@@ -67,13 +67,13 @@ function createPanel(items, depth = 0) {
 
     if (item === '---') {
       const sep = document.createElement('div');
-      sep.className = 'menu-separator';
+      sep.className = 'fisheye-separator';
       panel.appendChild(sep);
       continue;
     }
 
     const el = document.createElement('div');
-    el.className = 'menu-item';
+    el.className = 'fisheye-item';
     el.dataset.index = idx;
     el.style.height = CONFIG.baseHeight + 'px';
     el.setAttribute('role', 'menuitem');
@@ -133,7 +133,7 @@ function createPanel(items, depth = 0) {
   panel.addEventListener('mouseleave', () => onPanelMouseLeave());
 
   panel._items = items;
-  panel._itemEls = Array.from(panel.querySelectorAll('.menu-item'));
+  panel._itemEls = Array.from(panel.querySelectorAll('.fisheye-item'));
   panel._totalHeight = totalHeight;
   panel._depth = depth;
 
@@ -394,6 +394,10 @@ function onItemEnter(panel, el, item, idx, depth) {
 }
 
 function openFlyout(parentPanel, triggerEl, item, parentDepth) {
+  // Clear any previous trigger highlight, mark this one
+  for (const el of parentPanel._itemEls) el.classList.remove('fisheye-trigger');
+  triggerEl.classList.add('fisheye-trigger');
+
   const childPanel = createPanel(item.children, parentDepth + 1);
   childPanel.classList.add('flyout', 'open');
 
@@ -431,6 +435,11 @@ function closeFlyoutsAboveDepth(depth) {
     if (parseInt(topPanel.dataset.depth) > depth) {
       topPanel.remove();
       openMenus.pop();
+      // Clear trigger highlight on the parent panel
+      const parent = openMenus[openMenus.length - 1];
+      if (parent) {
+        for (const el of parent._itemEls) el.classList.remove('fisheye-trigger');
+      }
     } else {
       break;
     }
@@ -446,7 +455,7 @@ function closeAllMenus() {
     activeBarItem = null;
   }
   // Reset aria-expanded on all bar items
-  document.querySelectorAll('.menubar-item').forEach(
+  document.querySelectorAll('.fisheye-menubar-item').forEach(
     el => el.setAttribute('aria-expanded', 'false')
   );
   menuBarActive = false;
@@ -457,13 +466,14 @@ function closeAllMenus() {
 // ── Menu bar ───────────────────────────────────────────────────
 
 function buildMenuBar(bar, menus) {
+  bar.classList.add('fisheye-menubar');
   bar.setAttribute('role', 'menubar');
 
   const barItems = [];
 
   menus.forEach((menu, menuIdx) => {
     const barItem = document.createElement('div');
-    barItem.className = 'menubar-item';
+    barItem.className = 'fisheye-menubar-item';
     barItem.textContent = menu.label;
     barItem.setAttribute('role', 'menuitem');
     barItem.setAttribute('tabindex', menuIdx === 0 ? '0' : '-1');
@@ -525,7 +535,7 @@ function buildMenuBar(bar, menus) {
   });
 
   boundDocMouseDown = (e) => {
-    if (menuBarActive && !e.target.closest('.menubar') && !e.target.closest('.menu-panel')) {
+    if (menuBarActive && !e.target.closest('.fisheye-menubar') && !e.target.closest('.fisheye-panel')) {
       closeAllMenus();
     }
   };
