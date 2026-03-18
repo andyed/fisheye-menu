@@ -128,6 +128,20 @@ Include `fisheye-menu.css` for the default dark theme:
 
 Or use the class names (`.menu-panel`, `.menu-item`, `.menubar-item`, etc.) as a reference for your own theme. All layout is handled by JS — the stylesheet controls appearance only. Menu panels are appended to `document.body` for correct positioning.
 
+## References
+
+- Fitts, P. M. (1954). The information capacity of the human motor system in controlling the amplitude of movement. *Journal of Experimental Psychology*, 47(6), 381–391.
+
+- Bederson, B. B. (2000). [Fisheye menus](https://dl.acm.org/doi/10.1145/354401.354782). *Proceedings of UIST 2000*, 217–225. The original fisheye menu concept — magnifying items near the cursor in linear lists.
+
+- Ahlström, D., Alexandrowicz, R., & Hitz, M. (2005). [Modeling and improving selection in cascading pull-down menus using Fitts' law, the steering law and force fields](https://dl.acm.org/doi/10.1145/1054972.1054982). *Proceedings of CHI 2005*. Fitts's law analysis of cascading menu traversal.
+
+- Cockburn, A., & Gutwin, C. (2007). [Untangling the usability of fisheye menus](https://dl.acm.org/doi/10.1145/1275511.1275512). *ACM Transactions on Computer-Human Interaction*, 14(2). Found Dock-style fisheye menus slower than traditional menus — but tested a variant where magnification distorts spatial layout. Our approach differs: total menu height is fixed, only proportions shift, preserving spatial memory.
+
+- Tanvir, E., Cullen, J., Irani, P., & Cockburn, A. (2011). [Improving cascading menu selections with adaptive activation areas](https://www.sciencedirect.com/science/article/abs/pii/S1071581911000772). *International Journal of Human-Computer Studies*, 69(12), 769–785. Triangular activation areas for diagonal submenu access — the steering corridor technique.
+
+- Accot, J., & Zhai, S. (1997). Beyond Fitts' law: Models for trajectory-based HCI tasks. *Proceedings of CHI 1997*, 295–302. The steering law: movement time through a tunnel is proportional to tunnel length/width. Foundational for understanding cascading menu traversal costs.
+
 ## License
 
 MIT
