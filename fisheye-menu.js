@@ -332,22 +332,34 @@ function selectItem(item) {
 
 function isInSteeringCorridor(mx, my) {
   if (!steeringCorridor) return false;
+  const { flyoutBottom, flyoutX } = steeringCorridor;
 
-  // Core rule: if horizontal movement exceeds vertical movement,
-  // the user is steering toward the flyout — suppress item switch.
-  // If vertical >= horizontal, they're selecting a different item — allow it.
+  // Two checks, both must pass:
+  //
+  // 1) FREE TRAVEL ZONE: the mouse is above the line from its current
+  //    position to the lower-left corner of the flyout. Any point inside
+  //    the triangle (cursor start, flyout top-left, flyout bottom-left)
+  //    is a valid path toward the flyout.
+  //
+  // 2) MOVEMENT DIRECTION: horizontal movement exceeds vertical.
+  //    If vertical dominates, the user is switching items, not steering.
+
+  // Direction check
   const dx = Math.abs(mx - prevMouseX);
   const dy = Math.abs(my - prevMouseY);
   prevMouseX = mx;
   prevMouseY = my;
 
-  // Moving more vertically than horizontally = switching items, not steering
   if (dy >= dx) return false;
 
-  // Moving leftward = definitely not heading toward flyout
-  if (mx < prevMouseX) return false;
+  // Free travel zone: is the mouse above the line from cursor to
+  // the flyout's lower-left corner? If the mouse is below the
+  // flyout bottom, it's overshot — not steering.
+  if (my > flyoutBottom + 20) return false;
 
-  // Horizontal movement dominates — user is steering toward the flyout
+  // Must be heading rightward (toward the flyout)
+  if (mx > flyoutX) return false;
+
   return true;
 }
 

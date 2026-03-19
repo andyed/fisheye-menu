@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" width="600" height="240" font-family="-apple-system, BlinkMacSystemFont, system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 250" width="620" height="250" font-family="-apple-system, BlinkMacSystemFont, system-ui, sans-serif">
   <style>
     text { fill: #c0c0d0; }
     .label { font-size: 11px; }
@@ -7,7 +7,7 @@
   </style>
 
   <!-- Left: the problem -->
-  <text x="140" y="18" text-anchor="middle" class="title">The Problem</text>
+  <text x="140" y="18" text-anchor="middle" class="title">The Diagonal Problem</text>
 
   <!-- Parent menu -->
   <rect x="30" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
@@ -34,7 +34,7 @@
   <text x="30" y="170" class="dim" fill="#e94560">Crosses Item C → flyout closes</text>
 
   <!-- Right: the solution -->
-  <text x="440" y="18" text-anchor="middle" class="title">The Solution</text>
+  <text x="440" y="18" text-anchor="middle" class="title">Free Travel Zone</text>
 
   <!-- Parent menu -->
   <rect x="330" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
@@ -56,21 +56,28 @@
   <text x="520" y="114" text-anchor="middle" class="label">Sub 3</text>
   <text x="520" y="144" text-anchor="middle" class="label" fill="#e94560">Target</text>
 
-  <!-- Free travel zone: triangle from cursor to lower-left of flyout -->
-  <polygon points="385,74 455,153 455,74" fill="#4ade80" opacity="0.12" stroke="#4ade80" stroke-width="1.5"/>
+  <!-- Free travel zone: triangle from cursor to lower-left corner of flyout -->
+  <polygon points="385,74 455,74 455,153" fill="#4ade80" opacity="0.15"/>
+  <line x1="385" y1="74" x2="455" y2="153" stroke="#4ade80" stroke-width="1.5"/>
+  <line x1="385" y1="74" x2="455" y2="74" stroke="#4ade80" stroke-width="1.5" opacity="0.4"/>
+  <line x1="455" y1="74" x2="455" y2="153" stroke="#4ade80" stroke-width="1.5" opacity="0.4"/>
 
-  <!-- Lower-left corner marker -->
-  <circle cx="455" cy="153" r="4" fill="#4ade80"/>
+  <!-- Lower-left corner of flyout — the anchor point -->
+  <circle cx="455" cy="153" r="5" fill="none" stroke="#4ade80" stroke-width="2"/>
 
-  <!-- Mouse path — safe diagonal -->
-  <line x1="385" y1="74" x2="510" y2="139" stroke="#4ade80" stroke-width="2.5"/>
+  <!-- Mouse cursor start -->
   <circle cx="385" cy="74" r="4" fill="#4ade80"/>
+
+  <!-- Successful diagonal path through the zone -->
+  <line x1="385" y1="74" x2="510" y2="139" stroke="#4ade80" stroke-width="2.5"/>
   <text x="515" y="142" fill="#4ade80" font-size="14">✓</text>
 
   <!-- Labels -->
-  <text x="420" y="108" class="label" fill="#4ade80">free zone</text>
-  <text x="330" y="178" class="dim" fill="#4ade80">Mouse moving more horizontally</text>
-  <text x="330" y="193" class="dim" fill="#4ade80">than vertically → protect flyout</text>
-  <text x="330" y="215" class="dim" fill="#a0a0b0">Moving mostly down → switching</text>
-  <text x="330" y="230" class="dim" fill="#a0a0b0">items, allow flyout to close</text>
+  <text x="405" y="120" class="label" fill="#4ade80">free</text>
+  <text x="405" y="132" class="label" fill="#4ade80">zone</text>
+
+  <text x="330" y="178" class="dim" fill="#4ade80">Triangle from cursor to flyout's</text>
+  <text x="330" y="193" class="dim" fill="#4ade80">lower-left corner = safe passage</text>
+  <text x="330" y="215" class="dim" fill="#c0c0d0">Plus: dx > dy → steering to flyout</text>
+  <text x="330" y="230" class="dim" fill="#c0c0d0">dy > dx → switching items (close)</text>
 </svg>
