@@ -1,14 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 220" width="600" height="220" font-family="-apple-system, BlinkMacSystemFont, system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" width="600" height="240" font-family="-apple-system, BlinkMacSystemFont, system-ui, sans-serif">
   <style>
     text { fill: #c0c0d0; }
     .label { font-size: 11px; }
     .title { font-size: 14px; font-weight: 600; fill: #e0e0f0; }
-    .dim { font-size: 11px; fill: #e94560; }
-    .small { font-size: 10px; }
+    .dim { font-size: 11px; }
   </style>
 
   <!-- Left: the problem -->
-  <text x="150" y="18" text-anchor="middle" class="title">The Diagonal Problem</text>
+  <text x="140" y="18" text-anchor="middle" class="title">The Problem</text>
 
   <!-- Parent menu -->
   <rect x="30" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
@@ -16,7 +15,7 @@
   <rect x="30" y="90" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
   <rect x="30" y="120" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
   <text x="90" y="49" text-anchor="middle" class="label">Item A</text>
-  <text x="90" y="79" text-anchor="middle" class="label" fill="#d0c0ff">Hovered ▸</text>
+  <text x="90" y="79" text-anchor="middle" class="label" fill="#d0c0ff">Trigger ▸</text>
   <text x="90" y="109" text-anchor="middle" class="label">Item C</text>
   <text x="90" y="139" text-anchor="middle" class="label">Item D</text>
 
@@ -28,15 +27,14 @@
   <text x="210" y="104" text-anchor="middle" class="label">Sub 2</text>
   <text x="210" y="134" text-anchor="middle" class="label" fill="#e94560">Target</text>
 
-  <!-- Diagonal path (problem) -->
-  <line x1="85" y1="74" x2="200" y2="129" stroke="#e94560" stroke-width="2" stroke-dasharray="6,4"/>
-  <!-- X mark where it crosses Item C -->
+  <!-- Mouse path crossing Item C — FAIL -->
+  <line x1="85" y1="74" x2="200" y2="129" stroke="#e94560" stroke-width="2.5"/>
+  <circle cx="85" cy="74" r="4" fill="#e94560"/>
   <text x="108" y="100" fill="#e94560" font-size="16" font-weight="bold">✕</text>
-  <text x="50" y="168" class="dim">Mouse crosses Item C</text>
-  <text x="50" y="183" class="dim">→ flyout closes!</text>
+  <text x="30" y="170" class="dim" fill="#e94560">Crosses Item C → flyout closes</text>
 
   <!-- Right: the solution -->
-  <text x="450" y="18" text-anchor="middle" class="title">Movement Direction Fix</text>
+  <text x="440" y="18" text-anchor="middle" class="title">The Solution</text>
 
   <!-- Parent menu -->
   <rect x="330" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
@@ -44,38 +42,35 @@
   <rect x="330" y="90" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
   <rect x="330" y="120" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
   <text x="390" y="49" text-anchor="middle" class="label">Item A</text>
-  <text x="390" y="79" text-anchor="middle" class="label" fill="#d0c0ff">Hovered ▸</text>
+  <text x="390" y="79" text-anchor="middle" class="label" fill="#d0c0ff">Trigger ▸</text>
   <text x="390" y="109" text-anchor="middle" class="label">Item C</text>
   <text x="390" y="139" text-anchor="middle" class="label">Item D</text>
 
   <!-- Flyout -->
-  <rect x="455" y="35" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
-  <rect x="455" y="65" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
-  <rect x="455" y="95" width="110" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
-  <rect x="455" y="125" width="110" height="28" rx="3" fill="#e94560" opacity="0.3" stroke="#e94560"/>
-  <text x="510" y="54" text-anchor="middle" class="label">Sub 1</text>
-  <text x="510" y="84" text-anchor="middle" class="label">Sub 2</text>
-  <text x="510" y="114" text-anchor="middle" class="label">Sub 3</text>
-  <text x="510" y="144" text-anchor="middle" class="label" fill="#e94560">Target</text>
+  <rect x="455" y="35" width="130" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="455" y="65" width="130" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="455" y="95" width="130" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
+  <rect x="455" y="125" width="130" height="28" rx="3" fill="#e94560" opacity="0.3" stroke="#e94560"/>
+  <text x="520" y="54" text-anchor="middle" class="label">Sub 1</text>
+  <text x="520" y="84" text-anchor="middle" class="label">Sub 2</text>
+  <text x="520" y="114" text-anchor="middle" class="label">Sub 3</text>
+  <text x="520" y="144" text-anchor="middle" class="label" fill="#e94560">Target</text>
 
-  <!-- Diagonal path (success) — mostly horizontal -->
-  <line x1="385" y1="74" x2="500" y2="139" stroke="#4ade80" stroke-width="2"/>
-  <text x="505" y="139" fill="#4ade80" font-size="14">✓</text>
+  <!-- Free travel zone: triangle from cursor to lower-left of flyout -->
+  <polygon points="385,74 455,153 455,74" fill="#4ade80" opacity="0.12" stroke="#4ade80" stroke-width="1.5"/>
 
-  <!-- dx/dy annotation on the diagonal -->
-  <!-- Horizontal component -->
-  <line x1="400" y1="88" x2="460" y2="88" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,2"/>
-  <text x="430" y="84" text-anchor="middle" class="small" fill="#4ade80">dx</text>
-  <!-- Vertical component -->
-  <line x1="460" y1="88" x2="460" y2="112" stroke="#e94560" stroke-width="1" stroke-dasharray="3,2"/>
-  <text x="470" y="104" class="small" fill="#e94560">dy</text>
+  <!-- Lower-left corner marker -->
+  <circle cx="455" cy="153" r="4" fill="#4ade80"/>
 
-  <!-- Rule text -->
-  <text x="380" y="175" class="label" fill="#4ade80">dx > dy → steering to flyout</text>
-  <text x="380" y="190" class="label" fill="#4ade80">(suppress item switch)</text>
+  <!-- Mouse path — safe diagonal -->
+  <line x1="385" y1="74" x2="510" y2="139" stroke="#4ade80" stroke-width="2.5"/>
+  <circle cx="385" cy="74" r="4" fill="#4ade80"/>
+  <text x="515" y="142" fill="#4ade80" font-size="14">✓</text>
 
-  <!-- Vertical movement example -->
-  <line x1="375" y1="80" x2="375" y2="110" stroke="#e94560" stroke-width="1.5" stroke-dasharray="3,2"/>
-  <text x="380" y="207" class="label" fill="#a0a0b0">dy > dx → switching items</text>
-  <text x="380" y="220" class="label" fill="#a0a0b0">(allow flyout close)</text>
+  <!-- Labels -->
+  <text x="420" y="108" class="label" fill="#4ade80">free zone</text>
+  <text x="330" y="178" class="dim" fill="#4ade80">Mouse moving more horizontally</text>
+  <text x="330" y="193" class="dim" fill="#4ade80">than vertically → protect flyout</text>
+  <text x="330" y="215" class="dim" fill="#a0a0b0">Moving mostly down → switching</text>
+  <text x="330" y="230" class="dim" fill="#a0a0b0">items, allow flyout to close</text>
 </svg>
