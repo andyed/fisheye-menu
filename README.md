@@ -28,9 +28,7 @@ Cascading menus have a second failure mode: the diagonal path. When you move fro
 
 <img src="diagrams/steering-corridor.svg" alt="Steering corridor: the diagonal problem and the solution" />
 
-This implementation computes a **steering corridor** — a trapezoidal safe zone that expands from the trigger item toward the full height of the flyout. While the mouse is inside the corridor, item-enter events on the parent panel are suppressed. You can move diagonally to any part of the submenu without triggering a close.
-
-The corridor boundaries are interpolated linearly using the mouse's horizontal progress between the parent panel edge and the flyout edge. Vertical padding adds forgiveness for motor imprecision.
+This implementation uses a **movement direction heuristic**: when horizontal mouse movement exceeds vertical, the user is steering toward the flyout — item-switch events are suppressed. When vertical movement dominates, they're selecting a different item — the flyout closes normally. Simple, robust, and works everywhere in the menu without geometric edge cases.
 
 This is a well-known technique in HCI, predating Amazon's 2013 patent (now expired) on a specific mega-menu implementation. The geometric insight — protect the user's diagonal path to a submenu — follows directly from Fitts's and Accot-Zhai's steering law research and was taught in human factors curricula by the early 1990s.
 

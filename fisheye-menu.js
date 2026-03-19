@@ -43,6 +43,7 @@ let menuBarActive = false;
 let flyoutTimeout = null;
 let lastMousePos = { x: 0, y: 0 };
 let prevMouseX = 0;
+let prevMouseY = 0;
 let steeringCorridor = null;
 let boundDocMouseDown = null;
 let overlayEl = null;
@@ -331,26 +332,23 @@ function selectItem(item) {
 
 function isInSteeringCorridor(mx, my) {
   if (!steeringCorridor) return false;
-  const { parentLeft, triggerTop, triggerBottom, triggerX,
-          flyoutTop, flyoutBottom, flyoutX } = steeringCorridor;
 
-  // Only suppress when moving toward the flyout
-  const movingRight = mx >= prevMouseX;
+  // Core rule: if horizontal movement exceeds vertical movement,
+  // the user is steering toward the flyout — suppress item switch.
+  // If vertical >= horizontal, they're selecting a different item — allow it.
+  const dx = Math.abs(mx - prevMouseX);
+  const dy = Math.abs(my - prevMouseY);
   prevMouseX = mx;
-  if (!movingRight) return false;
+  prevMouseY = my;
 
-  // Only protect the gap between parent right edge and flyout left edge.
-  // Inside the parent panel itself, item switches should always work.
-  if (mx >= triggerX && mx <= flyoutX) {
-    const dx = flyoutX - triggerX;
-    if (Math.abs(dx) < 1) return true;
-    const t = (mx - triggerX) / dx;
-    const top = triggerTop + (flyoutTop - triggerTop) * t;
-    const bottom = triggerBottom + (flyoutBottom - triggerBottom) * t;
-    return my >= top - 20 && my <= bottom + 20;
-  }
+  // Moving more vertically than horizontally = switching items, not steering
+  if (dy >= dx) return false;
 
-  return false;
+  // Moving leftward = definitely not heading toward flyout
+  if (mx < prevMouseX) return false;
+
+  // Horizontal movement dominates — user is steering toward the flyout
+  return true;
 }
 
 function updateSteeringCorridor(parentPanel) {
