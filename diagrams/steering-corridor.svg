@@ -4,6 +4,7 @@
     .label { font-size: 11px; }
     .title { font-size: 14px; font-weight: 600; fill: #e0e0f0; }
     .dim { font-size: 11px; fill: #e94560; }
+    .small { font-size: 10px; }
   </style>
 
   <!-- Left: the problem -->
@@ -30,12 +31,12 @@
   <!-- Diagonal path (problem) -->
   <line x1="85" y1="74" x2="200" y2="129" stroke="#e94560" stroke-width="2" stroke-dasharray="6,4"/>
   <!-- X mark where it crosses Item C -->
-  <text x="105" y="100" fill="#e94560" font-size="18" font-weight="bold">✕</text>
-  <text x="50" y="165" class="dim">Mouse crosses Item C</text>
-  <text x="50" y="180" class="dim">→ flyout closes!</text>
+  <text x="108" y="100" fill="#e94560" font-size="16" font-weight="bold">✕</text>
+  <text x="50" y="168" class="dim">Mouse crosses Item C</text>
+  <text x="50" y="183" class="dim">→ flyout closes!</text>
 
   <!-- Right: the solution -->
-  <text x="450" y="18" text-anchor="middle" class="title">Steering Corridor</text>
+  <text x="450" y="18" text-anchor="middle" class="title">Movement Direction Fix</text>
 
   <!-- Parent menu -->
   <rect x="330" y="30" width="120" height="28" rx="3" fill="#2a3a5c" stroke="#3a4a6c"/>
@@ -57,15 +58,24 @@
   <text x="510" y="114" text-anchor="middle" class="label">Sub 3</text>
   <text x="510" y="144" text-anchor="middle" class="label" fill="#e94560">Target</text>
 
-  <!-- Steering corridor (trapezoid) -->
-  <polygon points="450,60 450,88 565,155 565,35" fill="#4ade80" opacity="0.08" stroke="#4ade80" stroke-width="1" stroke-dasharray="4,3"/>
-
-  <!-- Diagonal path (success) -->
+  <!-- Diagonal path (success) — mostly horizontal -->
   <line x1="385" y1="74" x2="500" y2="139" stroke="#4ade80" stroke-width="2"/>
-  <!-- Checkmark -->
-  <text x="505" y="139" fill="#4ade80" font-size="16">✓</text>
+  <text x="505" y="139" fill="#4ade80" font-size="14">✓</text>
 
-  <text x="380" y="175" class="label" fill="#4ade80">Corridor expands toward flyout</text>
-  <text x="380" y="192" class="label" fill="#4ade80">Mouse-enter events suppressed</text>
-  <text x="380" y="209" class="label" fill="#4ade80">inside the safe zone</text>
+  <!-- dx/dy annotation on the diagonal -->
+  <!-- Horizontal component -->
+  <line x1="400" y1="88" x2="460" y2="88" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="430" y="84" text-anchor="middle" class="small" fill="#4ade80">dx</text>
+  <!-- Vertical component -->
+  <line x1="460" y1="88" x2="460" y2="112" stroke="#e94560" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="470" y="104" class="small" fill="#e94560">dy</text>
+
+  <!-- Rule text -->
+  <text x="380" y="175" class="label" fill="#4ade80">dx > dy → steering to flyout</text>
+  <text x="380" y="190" class="label" fill="#4ade80">(suppress item switch)</text>
+
+  <!-- Vertical movement example -->
+  <line x1="375" y1="80" x2="375" y2="110" stroke="#e94560" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="380" y="207" class="label" fill="#a0a0b0">dy > dx → switching items</text>
+  <text x="380" y="220" class="label" fill="#a0a0b0">(allow flyout close)</text>
 </svg>

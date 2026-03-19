@@ -45,6 +45,24 @@
     text-decoration: none;
   }
 
+  /* ── Branding (below menu) ────────────────────── */
+  .branding {
+    position: fixed;
+    top: 75%;
+    left: 40px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #a0a0b8;
+  }
+
+  .branding a {
+    color: #e94560;
+    text-decoration: none;
+    margin-left: 4px;
+  }
+
   /* ── Footer ──────────────────────────────────── */
   .footer {
     position: fixed;
@@ -66,16 +84,16 @@
 <body>
 
 <div class="header">
-  <img src="logo.svg" width="64" alt="Fisheye Menu" />
-  <div>
-    <h1>How do you respond to AI progress?</h1>
-    <p>Fisheye Menu — Fitts's Law optimized cascading menus.
-      <a href="https://github.com/andyed/fisheye-menu">GitHub</a>
-    </p>
-  </div>
+  <h1>How are you responding to AI progress?</h1>
 </div>
 
 <div id="menubar"></div>
+
+<div class="branding">
+  <img src="logo.svg" width="32" alt="Fisheye Menu" />
+  <span>Fisheye Menu</span>
+  <a href="https://github.com/andyed/fisheye-menu">github.com/andyed/fisheye-menu</a>
+</div>
 
 <div class="footer">
   <a href="https://andyed.github.io/fisheye-menu/">Live Demo</a>
