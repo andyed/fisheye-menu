@@ -11,7 +11,7 @@
  * events, and menu lifecycle.
  */
 
-import { computeFisheyeHeights, computeDefaultHeights } from './fisheye-core.js';
+import { computeFisheyeHeights, computeDefaultHeights, DEFAULT_CONFIG } from './fisheye-core.js';
 
 // ── Default configuration ──────────────────────────────────────
 
@@ -31,6 +31,7 @@ const DEFAULTS = {
   theme: 'dark',        // 'dark' | 'light' | null (use inherited CSS vars)
   barTrigger: 'click',  // 'click' | 'hover' — how the menu bar opens dropdowns
   flyoutTrigger: 'hover', // 'hover' | 'click' — how flyout submenus open
+  fisheye: true,          // Enable fisheye size magnification on hover
 };
 
 // ── Instance state ─────────────────────────────────────────────
@@ -181,7 +182,9 @@ function onPanelMouseMove(panel, e) {
   // Between items (padding/separator gap) — keep current state
   if (hoveredIdx < 0) return;
 
-  const heights = computeFisheyeHeights(itemEls.length, hoveredIdx, panel._totalHeight, CONFIG);
+  const heights = CONFIG.fisheye
+    ? computeFisheyeHeights(itemEls.length, hoveredIdx, panel._totalHeight, CONFIG)
+    : computeDefaultHeights(itemEls.length, panel._totalHeight, CONFIG);
   applyHeights(panel, heights);
   updateDebug(hoveredIdx, heights);
   updateSteeringCorridor(panel);
@@ -199,7 +202,7 @@ function applyHeights(panel, heights) {
   for (let i = 0; i < itemEls.length; i++) {
     const h = heights[i];
     itemEls[i].style.height = h + 'px';
-    itemEls[i].style.fontSize = (h * 0.5) + 'px';
+    itemEls[i].style.fontSize = CONFIG.fisheye ? (h * 0.5) + 'px' : '';
   }
 }
 
@@ -302,7 +305,9 @@ function focusItem(panel, idx) {
   itemEls[idx].focus({ preventScroll: true });
 
   // Apply fisheye centered on this item
-  const heights = computeFisheyeHeights(itemEls.length, idx, panel._totalHeight, CONFIG);
+  const heights = CONFIG.fisheye
+    ? computeFisheyeHeights(itemEls.length, idx, panel._totalHeight, CONFIG)
+    : computeDefaultHeights(itemEls.length, panel._totalHeight, CONFIG);
   applyHeights(panel, heights);
   updateDebug(idx, heights);
 }
@@ -441,10 +446,10 @@ function openFlyout(parentPanel, triggerEl, item, parentDepth) {
   childPanel.style.left = left + 'px';
   childPanel.style.top = top + 'px';
 
-  // Initial fisheye biased toward first item (mouse enters from top)
-  const heights = computeFisheyeHeights(
-    childPanel._itemEls.length, 0, childPanel._totalHeight, CONFIG
-  );
+  // Initial heights — fisheye biased toward first item, or uniform
+  const heights = CONFIG.fisheye
+    ? computeFisheyeHeights(childPanel._itemEls.length, 0, childPanel._totalHeight, CONFIG)
+    : computeDefaultHeights(childPanel._itemEls.length, childPanel._totalHeight, CONFIG);
   applyHeights(childPanel, heights);
 
   openMenus.push(childPanel);
@@ -593,7 +598,9 @@ function openTopMenu(barItem, menu) {
   panel.style.left = rect.left + 'px';
   panel.style.top = rect.bottom + 'px';
 
-  const heights = computeFisheyeHeights(panel._itemEls.length, 0, panel._totalHeight, CONFIG);
+  const heights = CONFIG.fisheye
+    ? computeFisheyeHeights(panel._itemEls.length, 0, panel._totalHeight, CONFIG)
+    : computeDefaultHeights(panel._itemEls.length, panel._totalHeight, CONFIG);
   applyHeights(panel, heights);
 
   openMenus.push(panel);

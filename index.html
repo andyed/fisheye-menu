@@ -95,6 +95,9 @@
       </select>
     </label>
     <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
+      <input type="checkbox" id="opt-fisheye" checked> Fisheye
+    </label>
+    <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
       <input type="checkbox" id="opt-overlay" checked> Overlay
     </label>
     <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #a0a0b0;">
@@ -118,6 +121,7 @@ function init() {
   if (menu) menu.destroy();
   menu = create(document.getElementById('menubar'), MENUS, {
     debug: true,
+    fisheye: document.getElementById('opt-fisheye').checked,
     overlay: document.getElementById('opt-overlay').checked,
     theme: document.getElementById('opt-light').checked ? 'light' : 'dark',
     barTrigger: document.getElementById('opt-bar-trigger').value,
