@@ -323,8 +323,8 @@ function clearHighlight(panel) {
 // ── Selection ──────────────────────────────────────────────────
 
 function selectItem(item) {
-  if (CONFIG.onSelect) CONFIG.onSelect(item);
   closeAllMenus();
+  if (CONFIG.onSelect) CONFIG.onSelect(item);
 }
 
 // ── Steering corridor ──────────────────────────────────────────
@@ -443,8 +443,8 @@ function openFlyout(parentPanel, triggerEl, item, parentDepth) {
     top = Math.max(4, window.innerHeight - childPanel._totalHeight - 4);
   }
 
-  childPanel.style.left = left + 'px';
-  childPanel.style.top = top + 'px';
+  childPanel.style.left = (left + window.scrollX) + 'px';
+  childPanel.style.top = (top + window.scrollY) + 'px';
 
   // Initial heights — fisheye biased toward first item, or uniform
   const heights = CONFIG.fisheye
@@ -508,10 +508,20 @@ function buildMenuBar(bar, menus) {
     barItem.setAttribute('aria-haspopup', 'true');
     barItem.setAttribute('aria-expanded', 'false');
 
+    barItem.addEventListener('click', (e) => {
+      // Leaf items (no children) — fire onSelect directly
+      if (!menu.children?.length) {
+        e.stopPropagation();
+        closeAllMenus();
+        if (CONFIG.onSelect) CONFIG.onSelect(menu);
+        return;
+      }
+    });
+
     barItem.addEventListener('mousedown', (e) => {
       e.preventDefault();
       barItem.focus();
-      if (CONFIG.barTrigger === 'click') {
+      if (menu.children?.length && CONFIG.barTrigger === 'click') {
         if (activeBarItem === barItem && menuBarActive) {
           closeAllMenus();
         } else {
@@ -595,8 +605,8 @@ function openTopMenu(barItem, menu) {
   panel.classList.add('open');
 
   const rect = barItem.getBoundingClientRect();
-  panel.style.left = rect.left + 'px';
-  panel.style.top = rect.bottom + 'px';
+  panel.style.left = (rect.left + window.scrollX) + 'px';
+  panel.style.top = (rect.bottom + window.scrollY) + 'px';
 
   const heights = CONFIG.fisheye
     ? computeFisheyeHeights(panel._itemEls.length, 0, panel._totalHeight, CONFIG)
