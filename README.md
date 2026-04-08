@@ -36,6 +36,20 @@ This is a well-known technique in HCI, predating Amazon's 2013 patent (now expir
 
 This approach was originally prototyped as a "fisheye menu" during Andy Edmonds' MS research in Human Factors at Clemson University, exploring mouse-position-dependent target sizing in hierarchical menus ([2005 prototype screenshot](https://www.flickr.com/photos/andyed/26420728/)). The core insight: if you make the item the user is heading toward taller, and ensure the boundaries they'd cross don't shift against them, you get faster traversal without sacrificing menu density.
 
+<p align="center">
+  <a href="https://www.flickr.com/photos/andyed/80281464/"><img src="assets/history/thesis_proposal_menu_80281464.jpg" alt="Thesis proposal menu mockup — cascading selection with 'Masters Thesis' → 'Propose Thesis'" width="360" /></a>
+  <br/>
+  <em>Thesis proposal menu mockup, Clemson (<a href="https://www.flickr.com/photos/andyed/80281464/">Flickr, 2006</a>).</em>
+</p>
+
+A companion piece from 2007 — *Cascading Menus Are Dysfunctional On The Web* — diagrammed the diagonal-path failure mode on Amazon's department menu and showed where the free-travel triangle should go. Amazon later fixed their menu and did a great job of it; the annotated screenshot stands as a period artifact of the problem this library solves.
+
+<p align="center">
+  <a href="https://www.flickr.com/photos/andyed/1968747857/"><img src="assets/history/cascading_menus_dysfunctional_1968747857.jpg" alt="Annotated Amazon cascading menu showing the natural diagonal mouse path and the screen area needed for direct target acquisition" width="480" /></a>
+  <br/>
+  <em>"Cascading Menus Are Dysfunctional On The Web" — commentary on Amazon's 2007 department menu (<a href="https://www.flickr.com/photos/andyed/1968747857/">Flickr</a>).</em>
+</p>
+
 ## Configuration
 
 All behavior is controlled via the `CONFIG` object in `fisheye-menu.js`:
