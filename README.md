@@ -1,5 +1,9 @@
 # Fisheye Flyout Menu
 
+<p align="center">
+  <video src="demo-video/demo.mp4" width="720" autoplay loop muted playsinline></video>
+</p>
+
 <img src="logo.svg" width="120" alt="Fisheye Flyout Menu logo" />
 
 ![Fisheye Flyout Menu demo showing Dewey Decimal taxonomy with 600 Technology expanded](screenshot.png)

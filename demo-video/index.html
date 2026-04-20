@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0a0a1a;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        color: #c0c0c0;
+      }
+
+      /* ── Scene frames ─────────────────────────────── */
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ── Scene 1: Title ───────────────────────────── */
+      .scene-1-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 120px;
+        gap: 36px;
+        box-sizing: border-box;
+      }
+      .title {
+        font-size: 160px;
+        font-weight: 800;
+        color: #e6e4d2;
+        letter-spacing: -0.04em;
+        line-height: 0.95;
+      }
+      .title .accent {
+        color: #ff9595;
+        display: inline-block;
+      }
+      .subtitle {
+        font-size: 46px;
+        font-weight: 400;
+        color: #c0c0c0;
+        letter-spacing: 0.01em;
+        text-align: center;
+      }
+
+      /* ── Scene 2: Menu demo ───────────────────────── */
+      .scene-2-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 80px 120px;
+        gap: 64px;
+        box-sizing: border-box;
+      }
+      .menu-caption {
+        font-size: 38px;
+        font-weight: 500;
+        color: #c0c0c0;
+        text-align: center;
+        max-width: 1200px;
+        line-height: 1.3;
+      }
+      .menu-caption .hl {
+        color: #ff9595;
+        font-weight: 600;
+      }
+      .menu-stage {
+        position: relative;
+        width: 900px;
+        height: 560px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .menu {
+        background: #16213e;
+        border: 1px solid #0f3460;
+        border-radius: 8px;
+        padding: 12px 0;
+        box-shadow: 0 16px 64px rgba(0, 0, 0, 0.7);
+        width: 480px;
+      }
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 0 28px;
+        color: #c0c0c0;
+        font-size: 30px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        height: 72px;
+        background: #16213e;
+      }
+      .menu-item .label { flex: 1; }
+      .cursor {
+        position: absolute;
+        left: 720px;
+        top: 100px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #ff9595;
+        box-shadow: 0 0 28px rgba(255, 149, 149, 0.55),
+          inset 0 0 6px rgba(255, 255, 255, 0.5);
+        z-index: 10;
+      }
+
+      /* ── Scene 3: CTA ─────────────────────────────── */
+      .scene-3-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 120px;
+        gap: 28px;
+        box-sizing: border-box;
+      }
+      .cta-url {
+        font-size: 72px;
+        font-weight: 700;
+        color: #e6e4d2;
+        letter-spacing: -0.015em;
+      }
+      .cta-github {
+        font-size: 32px;
+        font-weight: 400;
+        color: #c0c0c0;
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="10"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- Scene 1: Title (0 → 2.9s) -->
+      <div id="scene-1" class="clip scene" data-start="0" data-duration="2.9" data-track-index="0">
+        <div class="scene-1-content">
+          <div class="title">Fisheye<span class="accent">·</span>Menu</div>
+          <div class="subtitle">Fitts's Law, in cascading menus.</div>
+        </div>
+      </div>
+
+      <!-- Scene 2: Menu demo (2.6 → 7.7s — 0.3s crossfade overlap with scene 1) -->
+      <div id="scene-2" class="clip scene" data-start="2.6" data-duration="5.1" data-track-index="1">
+        <div class="scene-2-content">
+          <div class="menu-caption">
+            Items near your cursor <span class="hl">expand</span>. Distant items stay clickable.
+          </div>
+          <div class="menu-stage">
+            <div class="menu">
+              <div class="menu-item" id="item-0"><span class="label">File</span></div>
+              <div class="menu-item" id="item-1"><span class="label">Edit</span></div>
+              <div class="menu-item" id="item-2"><span class="label">View</span></div>
+              <div class="menu-item" id="item-3"><span class="label">Insert</span></div>
+              <div class="menu-item" id="item-4"><span class="label">Format</span></div>
+              <div class="menu-item" id="item-5"><span class="label">Help</span></div>
+            </div>
+            <div class="cursor" id="cursor"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 3: CTA (7.4 → 10s — 0.3s crossfade overlap with scene 2) -->
+      <div id="scene-3" class="clip scene" data-start="7.4" data-duration="2.6" data-track-index="2">
+        <div class="scene-3-content">
+          <div class="cta-url">andyed.github.io/fisheye-menu</div>
+          <div class="cta-github">MIT · github.com/andyed/fisheye-menu</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // ─── SCENE 1 — Title (entrances only) ───
+      tl.from("#scene-1 .title", {
+        y: 70, opacity: 0,
+        duration: 0.65, ease: "power3.out",
+      }, 0.25);
+      tl.from("#scene-1 .title .accent", {
+        scale: 0, rotation: -120,
+        duration: 0.55, ease: "back.out(2.2)",
+      }, 0.55);
+      tl.from("#scene-1 .subtitle", {
+        y: 40, opacity: 0,
+        duration: 0.55, ease: "power2.out",
+      }, 0.5);
+
+      // ─── SCENE 2 — Menu demo (crossfade in covers scene 1) ───
+      tl.set("#scene-2", { opacity: 0 }, 0);
+      tl.to("#scene-2", {
+        opacity: 1,
+        duration: 0.35, ease: "power2.inOut",
+      }, 2.6);
+
+      tl.from("#scene-2 .menu-caption", {
+        y: -30, opacity: 0,
+        duration: 0.5, ease: "power2.out",
+      }, 2.8);
+      tl.from("#scene-2 .menu", {
+        scale: 0.94, opacity: 0,
+        duration: 0.55, ease: "expo.out",
+      }, 2.95);
+      tl.from("#scene-2 .cursor", {
+        opacity: 0, scale: 0,
+        duration: 0.4, ease: "back.out(1.8)",
+      }, 3.3);
+
+      // ── Fisheye expansion cycle ──
+      // Baseline: 6 items × 72px = 432px menu height.
+      // State B (cursor at item 3 "Insert"):
+      //   heights [56, 88, 108, 144, 108, 88] = 592px
+      // State C (cursor at item 1 "Edit"):
+      //   heights [108, 144, 108, 88, 72, 56] = 576px
+
+      tl.to("#cursor", { y: 260, duration: 0.85, ease: "power2.inOut" }, 3.5);
+
+      const stateB = [56, 88, 108, 144, 108, 88];
+      stateB.forEach((h, i) => {
+        tl.to("#item-" + i, {
+          height: h,
+          backgroundColor: i === 3 ? "#533483" : "#16213e",
+          color: i === 3 ? "#ffffff" : "#c0c0c0",
+          duration: 0.4, ease: "power2.out",
+        }, 3.75);
+      });
+
+      tl.to("#cursor", { y: 90, duration: 0.75, ease: "power2.inOut" }, 4.85);
+
+      const stateC = [108, 144, 108, 88, 72, 56];
+      stateC.forEach((h, i) => {
+        tl.to("#item-" + i, {
+          height: h,
+          backgroundColor: i === 1 ? "#533483" : "#16213e",
+          color: i === 1 ? "#ffffff" : "#c0c0c0",
+          duration: 0.4, ease: "power2.out",
+        }, 5.1);
+      });
+
+      tl.to("#cursor", { x: 140, opacity: 0, duration: 0.55, ease: "power2.in" }, 6.25);
+
+      [72, 72, 72, 72, 72, 72].forEach((h, i) => {
+        tl.to("#item-" + i, {
+          height: h,
+          backgroundColor: "#16213e",
+          color: "#c0c0c0",
+          duration: 0.45, ease: "power2.out",
+        }, 6.5);
+      });
+
+      // ─── SCENE 3 — CTA (crossfade in covers scene 2) ───
+      tl.set("#scene-3", { opacity: 0 }, 0);
+      tl.to("#scene-3", {
+        opacity: 1,
+        duration: 0.35, ease: "power2.inOut",
+      }, 7.4);
+
+      tl.from("#scene-3 .cta-url", {
+        y: 50, opacity: 0,
+        duration: 0.65, ease: "power3.out",
+      }, 7.6);
+      tl.from("#scene-3 .cta-github", {
+        y: 30, opacity: 0,
+        duration: 0.5, ease: "power2.out",
+      }, 7.9);
+
+      // Final fade — only the last scene may have exit animations
+      tl.to("#scene-3", {
+        opacity: 0,
+        duration: 0.4, ease: "power2.in",
+      }, 9.55);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
