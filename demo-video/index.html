@@ -33,16 +33,16 @@
         box-sizing: border-box;
       }
       .title {
-        font-size: 116px;
+        font-size: 168px;
         font-weight: 800;
         color: #e6e4d2;
-        letter-spacing: -0.035em;
-        line-height: 1.0;
+        letter-spacing: -0.04em;
+        line-height: 0.98;
         text-align: center;
       }
       .title .accent { color: #ff9595; }
       .subtitle {
-        font-size: 38px;
+        font-size: 44px;
         font-weight: 400;
         color: #c0c0c0;
         letter-spacing: 0.01em;
@@ -72,59 +72,58 @@
       }
       .s2-caption .text {
         position: absolute;
-        font-size: 28px;
+        font-size: 30px;
         font-weight: 500;
         color: #c0c0c0;
         text-align: center;
       }
       .s2-caption .hl { color: #ff9595; font-weight: 600; }
 
-      /* The menu stage holds menubar + the active panel + cursor */
       .menu-stage {
         position: relative;
-        width: 1280px;
-        height: 720px;
+        width: 720px;
+        height: 740px;
       }
 
-      /* ── Custom menubar ── */
+      /* Menubar — width matches panel (optical alignment fix) */
       .menubar {
         position: absolute;
         top: 0;
         left: 0;
+        width: 720px;
         display: flex;
         background: var(--fisheye-bar-bg);
         border: 1px solid var(--fisheye-bar-border);
         border-radius: 8px;
         height: 80px;
-        padding: 0 16px;
+        padding: 0 8px;
         z-index: 10;
         box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
       }
       .menubar-item {
+        flex: 1;
         display: flex;
         align-items: center;
-        padding: 0 32px;
-        font-size: 28px;
+        justify-content: center;
+        font-size: 22px;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         color: var(--fisheye-bar-text);
         cursor: default;
-        position: relative;
+        margin: 8px 4px;
+        border-radius: 6px;
       }
       .menubar-item.active {
         background: var(--fisheye-bar-hover-bg);
         color: var(--fisheye-bar-hover-text);
-        border-radius: 6px;
-        margin: 8px 4px;
-        padding: 0 28px;
       }
 
-      /* ── Custom panel + items with sparkline bars ── */
+      /* Panel — same width as menubar */
       .panel {
         position: absolute;
         top: 96px;
         left: 0;
-        width: 880px;
+        width: 720px;
         background: var(--fisheye-panel-bg);
         border: 1px solid var(--fisheye-panel-border);
         border-radius: 8px;
@@ -137,54 +136,19 @@
       .item {
         display: flex;
         align-items: center;
-        padding: 0 24px;
-        gap: 20px;
+        padding: 0 32px;
         height: 72px; /* baseline — overridden inline by GSAP */
         overflow: hidden;
-        color: #c0c0c0;
+        font-size: 28px;
+        font-weight: 500;
+        white-space: nowrap;
+        color: var(--fisheye-bar-text);
         background: var(--fisheye-panel-bg);
+        letter-spacing: 0.005em;
       }
       .item.highlighted {
         background: var(--fisheye-item-hover-bg);
         color: #ffffff;
-      }
-      .item-name {
-        flex: 0 0 280px;
-        font-size: 24px;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .item-bar {
-        flex: 1;
-        height: 18px;
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 3px;
-        position: relative;
-        overflow: hidden;
-      }
-      .item-bar-fill {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        background: #ff9595;
-        opacity: 0.55;
-        border-radius: 3px;
-      }
-      .item.highlighted .item-bar-fill {
-        opacity: 0.95;
-        background: #ffd6d6;
-      }
-      .item-amount {
-        flex: 0 0 110px;
-        text-align: right;
-        font-size: 24px;
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-        color: #e6e4d2;
-        letter-spacing: -0.01em;
       }
 
       /* Cursor — coral arrow */
@@ -210,7 +174,7 @@
         width: 100%;
         height: 100%;
         padding: 120px;
-        gap: 24px;
+        gap: 28px;
         box-sizing: border-box;
       }
       .s3-tagline {
@@ -220,15 +184,23 @@
         letter-spacing: -0.015em;
         text-align: center;
         max-width: 1500px;
-        line-height: 1.2;
+        line-height: 1.15;
       }
       .s3-tagline .hl { color: #ff9595; }
+      .s3-sub {
+        font-size: 32px;
+        font-weight: 400;
+        color: #c0c0c0;
+        text-align: center;
+        max-width: 1200px;
+        margin-top: 8px;
+      }
       .cta-url {
-        font-size: 44px;
+        font-size: 48px;
         font-weight: 700;
         color: #e6e4d2;
         letter-spacing: -0.01em;
-        margin-top: 28px;
+        margin-top: 32px;
       }
       .cta-github {
         font-size: 24px;
@@ -243,35 +215,34 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="20"
+      data-duration="18"
       data-width="1920"
       data-height="1080"
     >
-      <!-- Scene 1: Title (0 → 3.2s) -->
-      <div id="scene-1" class="clip scene" data-start="0" data-duration="3.2" data-track-index="0">
+      <!-- Scene 1: Title (0 → 2.6s) -->
+      <div id="scene-1" class="clip scene" data-start="0" data-duration="2.6" data-track-index="0">
         <div class="s1-content">
           <div class="title">
-            Three ways to spend<br />
-            <span class="accent">a trillion dollars.</span>
+            Fisheye<span class="accent">·</span>Menu
           </div>
           <div class="subtitle">
-            What we choose to fund — visualized as a menu you can scan.
+            Fitts's Law, applied to cascading menus.
           </div>
         </div>
       </div>
 
-      <!-- Scene 2: Menu (2.9 → 17s) -->
-      <div id="scene-2" class="clip scene" data-start="2.9" data-duration="14.1" data-track-index="1">
+      <!-- Scene 2: Menu (2.3 → 15s) -->
+      <div id="scene-2" class="clip scene" data-start="2.3" data-duration="12.7" data-track-index="1">
         <div class="s2-content">
           <div class="s2-caption">
             <div id="cap-a" class="text">
-              <span class="hl">War.</span> The headline numbers.
+              Items near your cursor <span class="hl">expand</span>. Distant items stay clickable.
             </div>
             <div id="cap-b" class="text" style="opacity: 0;">
-              <span class="hl">Tech.</span> Where capital chases capital.
+              Same fisheye math, <span class="hl">any taxonomy</span>.
             </div>
             <div id="cap-c" class="text" style="opacity: 0;">
-              <span class="hl">Human dignity.</span> The bills nobody pays.
+              Six tabs. Sixty items. <span class="hl">No menu fatigue.</span>
             </div>
           </div>
           <div class="menu-stage" id="menu-stage">
@@ -291,15 +262,17 @@
         </div>
       </div>
 
-      <!-- Scene 3: CTA (16.7 → 20s) -->
-      <div id="scene-3" class="clip scene" data-start="16.7" data-duration="3.3" data-track-index="2">
+      <!-- Scene 3: CTA (14.7 → 18s) -->
+      <div id="scene-3" class="clip scene" data-start="14.7" data-duration="3.3" data-track-index="2">
         <div class="s3-content">
           <div class="s3-tagline">
-            We have <span class="hl">$40 B</span> for hunger, every year.<br />
-            We just don't pick it.
+            Every item a <span class="hl">target</span>.
           </div>
-          <div class="cta-url">scrutinizer.app · andyed.github.io/fisheye-menu</div>
-          <div class="cta-github">MIT · github.com/andyed/fisheye-menu · sources in README</div>
+          <div class="s3-sub">
+            ES6 module. No build step. MIT.
+          </div>
+          <div class="cta-url">andyed.github.io/fisheye-menu</div>
+          <div class="cta-github">github.com/andyed/fisheye-menu</div>
         </div>
       </div>
     </div>
@@ -308,57 +281,59 @@
       // ── Real fisheye math from fisheye-core.js (bundled) ──
       const { computeFisheyeHeights, computeDefaultHeights } = window.FisheyeMenu;
 
-      // ── Resource-allocation data ──
-      // Short labels + amount in billions USD. Sources documented in README.
+      // ── Resource-allocation taxonomy as menu content ──
+      // Short labels — no numbers, no sparklines. Real-menu shape.
+      // The juxtaposition of WAR / TECH / HUMAN DIGNITY in the menubar is
+      // the editorial weight; the demo doesn't have to make the comparison
+      // explicit. UI tech leads, content speaks for itself.
       const CATEGORIES = [
         {
           tab: "WAR",
           items: [
-            { name: "Iraq + Afghanistan",  amount: 8000,  unit: "$8T" },
-            { name: "Global military",     amount: 2443,  unit: "$2.4T/yr" },
-            { name: "F-35 program",        amount: 1700,  unit: "$1.7T" },
-            { name: "US Defense (DoD)",    amount: 886,   unit: "$886B/yr" },
-            { name: "US nukes (10y)",      amount: 634,   unit: "$634B" },
-            { name: "China PLA",           amount: 296,   unit: "$296B/yr" },
+            "Iraq + Afghanistan",
+            "Global military",
+            "F-35 program",
+            "US Defense",
+            "US nuclear",
+            "China PLA",
           ],
         },
         {
           tab: "TECH",
           items: [
-            { name: "Stargate AI infra",   amount: 500,   unit: "$500B" },
-            { name: "Amazon tech & R&D",   amount: 86,    unit: "$86B/yr" },
-            { name: "CHIPS Act (US)",      amount: 52,    unit: "$52B" },
-            { name: "Alphabet R&D",        amount: 45,    unit: "$45B/yr" },
-            { name: "Meta R&D",            amount: 38,    unit: "$38B/yr" },
-            { name: "Apple R&D",           amount: 30,    unit: "$30B/yr" },
-            { name: "Microsoft R&D",       amount: 27,    unit: "$27B/yr" },
-            { name: "NVIDIA R&D",          amount: 9,     unit: "$9B/yr" },
+            "Stargate AI",
+            "Amazon",
+            "CHIPS Act",
+            "Alphabet",
+            "Meta",
+            "Apple",
+            "Microsoft",
+            "NVIDIA",
           ],
         },
         {
           tab: "HUMAN DIGNITY",
           items: [
-            { name: "Clean water (world)", amount: 114,   unit: "$114B/yr" },
-            { name: "Universal pre-K",     amount: 70,    unit: "$70B/yr" },
-            { name: "End world hunger",    amount: 40,    unit: "$40B/yr" },
-            { name: "House the homeless",  amount: 20,    unit: "$20B/yr" },
-            { name: "Cancer research",     amount: 8,     unit: "$8B/yr" },
-            { name: "Eradicate malaria",   amount: 6,     unit: "$6B/yr" },
-            { name: "Family planning",     amount: 5,     unit: "$5B/yr" },
-            { name: "Eradicate polio",     amount: 1.2,   unit: "$1.2B" },
+            "Clean water",
+            "Universal pre-K",
+            "End world hunger",
+            "House the homeless",
+            "Cancer research",
+            "Eradicate malaria",
+            "Family planning",
+            "Eradicate polio",
           ],
         },
       ];
 
-      // Global max for sparkline scaling (so cross-category contrast lands)
-      const MAX_AMOUNT = 8000;
-      const BAR_AVAILABLE_PX = 380; // visible bar width inside .item-bar
-      function barWidthPx(amount) {
-        // sqrt scale: keeps small items visible, big items dominant
-        return Math.max(6, Math.sqrt(amount / MAX_AMOUNT) * BAR_AVAILABLE_PX);
-      }
+      // Layout constants
+      const BASE_HEIGHT = 78;
+      const FISHEYE_CONFIG = { maxExpand: 2.6, minHeight: 42, falloffRadius: 3 };
+      const PANEL_TOP_IN_STAGE = 96;   // .panel { top: 96px }
+      const PANEL_PADDING_TOP = 12;    // .panel { padding: 12px 0 }
+      const CURSOR_TIP_OFFSET = 3;     // Tip is at (3, 3) inside the 40px element
+      const CURSOR_X_IN_ITEM = 60;     // Cursor lands ~60px from panel left
 
-      // ── Build menubar + panel(s) ──
       const menubarEl = document.getElementById("menubar");
       const panelEl = document.getElementById("panel");
 
@@ -370,36 +345,26 @@
         menubarEl.appendChild(tab);
       });
 
-      // Build items for a category. Each item gets name + sparkline + amount.
       function renderPanel(catIdx) {
         const cat = CATEGORIES[catIdx];
         panelEl.innerHTML = "";
-        cat.items.forEach((it, i) => {
+        cat.items.forEach((label, i) => {
           const row = document.createElement("div");
           row.className = "item";
           row.dataset.idx = i;
-          row.innerHTML = `
-            <div class="item-name">${it.name}</div>
-            <div class="item-bar">
-              <div class="item-bar-fill" style="width: ${barWidthPx(it.amount).toFixed(1)}px;"></div>
-            </div>
-            <div class="item-amount">${it.unit}</div>
-          `;
+          row.textContent = label;
           panelEl.appendChild(row);
         });
       }
 
-      // Apply fisheye heights to the active panel using the real algorithm.
       function applyFisheye(hoveredIdx) {
         const items = panelEl.querySelectorAll(".item");
         const n = items.length;
         if (n === 0) return;
-        const baseHeight = 78;
-        const totalHeight = n * baseHeight;
-        const config = { maxExpand: 2.6, minHeight: 42, falloffRadius: 3 };
+        const totalHeight = n * BASE_HEIGHT;
         const heights = hoveredIdx < 0
-          ? computeDefaultHeights(n, totalHeight, config)
-          : computeFisheyeHeights(n, hoveredIdx, totalHeight, config);
+          ? computeDefaultHeights(n, totalHeight, FISHEYE_CONFIG)
+          : computeFisheyeHeights(n, hoveredIdx, totalHeight, FISHEYE_CONFIG);
         heights.forEach((h, i) => {
           items[i].style.height = `${h.toFixed(1)}px`;
           items[i].classList.toggle("highlighted", i === hoveredIdx);
@@ -414,17 +379,24 @@
         applyFisheye(-1);
       }
 
-      // Move cursor (visible SVG) to align tip with element center.
-      function cursorToElement(el, opts = {}) {
-        if (!el) return null;
-        const rect = el.getBoundingClientRect();
-        const stage = document.getElementById("menu-stage").getBoundingClientRect();
-        const cx = (opts.x !== undefined ? opts.x : rect.left + rect.width / 2) - stage.left - 3;
-        const cy = (opts.y !== undefined ? opts.y : rect.top + rect.height / 2) - stage.top - 3;
-        return { x: cx, y: cy };
+      // Predict cursor position AFTER fisheye applies — so we can move the
+      // cursor BEFORE applying fisheye, with the cursor leading the highlight
+      // (causal order matches Fitts's-law intuition).
+      function predictCursorPos(catIdx, itemIdx) {
+        const cat = CATEGORIES[catIdx];
+        const n = cat.items.length;
+        const totalHeight = n * BASE_HEIGHT;
+        const heights = computeFisheyeHeights(n, itemIdx, totalHeight, FISHEYE_CONFIG);
+        let yAccum = PANEL_PADDING_TOP;
+        for (let i = 0; i < itemIdx; i++) yAccum += heights[i];
+        const itemCenterY = yAccum + heights[itemIdx] / 2;
+        return {
+          x: CURSOR_X_IN_ITEM - CURSOR_TIP_OFFSET,
+          y: PANEL_TOP_IN_STAGE + itemCenterY - CURSOR_TIP_OFFSET,
+        };
       }
 
-      // Initial render
+      // Initial state
       activateTab(0);
 
       // ── GSAP timeline ──
@@ -439,116 +411,120 @@
       tl.from("#scene-1 .title", {
         y: 70, opacity: 0,
         duration: 0.7, ease: "power3.out",
-      }, 0.3);
+      }, 0.25);
       tl.from("#scene-1 .title .accent", {
-        opacity: 0,
-        duration: 0.5, ease: "power2.out",
-      }, 0.85);
+        scale: 0, rotation: -120,
+        duration: 0.55, ease: "back.out(2.2)",
+      }, 0.55);
       tl.from("#scene-1 .subtitle", {
         y: 35, opacity: 0,
         duration: 0.55, ease: "power2.out",
-      }, 0.9);
+      }, 0.55);
 
-      // ─── SCENE 2 — Menu (crossfade in) ───
+      // ─── SCENE 2 — Menu (crossfade in over scene 1) ───
       tl.to("#scene-2", {
         opacity: 1,
         duration: 0.4, ease: "power2.inOut",
-      }, 2.9);
+      }, 2.3);
 
-      tl.from("#cap-a", { y: -25, opacity: 0, duration: 0.5, ease: "power2.out" }, 3.05);
-      tl.from("#menubar", { y: -20, opacity: 0, duration: 0.55, ease: "expo.out" }, 3.15);
+      tl.from("#cap-a", { y: -25, opacity: 0, duration: 0.5, ease: "power2.out" }, 2.5);
+      tl.from("#menubar", { y: -20, opacity: 0, duration: 0.55, ease: "expo.out" }, 2.6);
       tl.fromTo("#panel",
         { y: 30, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" },
-        3.4
+        2.85
       );
-      tl.from("#cursor", { opacity: 0, scale: 0, duration: 0.4, ease: "back.out(1.8)" }, 3.5);
+      tl.from("#cursor", { opacity: 0, scale: 0, duration: 0.4, ease: "back.out(1.8)" }, 3.0);
 
-      // Helper: hover item idx in the active panel + move cursor + apply fisheye
+      // hoverItem with cursor-leads-highlight pattern:
+      //   1. Cursor tweens to predicted post-fisheye position over 0.4s
+      //   2. Fisheye applies on cursor arrival (causal order preserved)
+      const CURSOR_TWEEN_DURATION = 0.4;
       function hoverItem(t, catIdx, itemIdx) {
+        // Move cursor toward predicted target
         tl.call(() => {
-          // Ensure correct tab is active
           if (parseInt(document.querySelector(".menubar-item.active")?.dataset.idx ?? "-1", 10) !== catIdx) {
             activateTab(catIdx);
           }
-          applyFisheye(itemIdx);
-          const items = panelEl.querySelectorAll(".item");
-          const target = items[itemIdx];
-          const pos = cursorToElement(target);
-          if (pos) gsap.to("#cursor", { x: pos.x, y: pos.y, duration: 0.45, ease: "power2.inOut" });
+          const pos = predictCursorPos(catIdx, itemIdx);
+          gsap.to("#cursor", { x: pos.x, y: pos.y, duration: CURSOR_TWEEN_DURATION, ease: "power2.inOut" });
         }, null, t);
+        // Apply fisheye when cursor arrives
+        tl.call(() => {
+          applyFisheye(itemIdx);
+        }, null, t + CURSOR_TWEEN_DURATION);
       }
 
       function switchTab(t, catIdx, initialItemIdx) {
         tl.call(() => {
           activateTab(catIdx);
           applyFisheye(initialItemIdx);
-          const items = panelEl.querySelectorAll(".item");
-          const target = items[initialItemIdx];
-          const pos = cursorToElement(target);
-          if (pos) gsap.set("#cursor", { x: pos.x, y: pos.y });
+          const pos = predictCursorPos(catIdx, initialItemIdx);
+          gsap.set("#cursor", { x: pos.x, y: pos.y });
         }, null, t);
       }
 
-      // ── WAR (3.7 → 6.5) ──
-      // Walk 1, 2, 4 — Iraq+Afghan, Global mil, US nukes
-      hoverItem(3.8, 0, 0);  // Iraq+Afghan ($8T)
-      hoverItem(4.6, 0, 2);  // F-35 ($1.7T)
-      hoverItem(5.4, 0, 4);  // US nukes ($634B)
+      // ── WAR (3.4 → 6.4s) ──
+      hoverItem(3.5, 0, 0);  // Iraq + Afghanistan
+      hoverItem(4.4, 0, 2);  // F-35 program
+      hoverItem(5.3, 0, 4);  // US nuclear
 
       // Caption A → B
-      tl.to("#cap-a", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 6.4);
+      tl.to("#cap-a", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 6.3);
       tl.fromTo("#cap-b",
         { opacity: 0, y: 18 },
         { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
-        6.6
+        6.5
       );
 
-      // ── TECH (6.8 → 9.5) ──
-      switchTab(6.8, 1, 0);
-      hoverItem(7.4, 1, 0);  // Stargate ($500B)
-      hoverItem(8.2, 1, 3);  // Alphabet R&D ($45B)
-      hoverItem(9.0, 1, 7);  // NVIDIA R&D ($9B)
+      // ── TECH (6.7 → 9.4s) ──
+      switchTab(6.7, 1, 0);
+      hoverItem(6.8, 1, 0);  // Stargate AI
+      hoverItem(7.7, 1, 3);  // Alphabet
+      hoverItem(8.6, 1, 7);  // NVIDIA
 
       // Caption B → C
-      tl.to("#cap-b", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 9.7);
+      tl.to("#cap-b", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 9.5);
       tl.fromTo("#cap-c",
         { opacity: 0, y: 18 },
         { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
-        9.9
+        9.7
       );
 
-      // ── HUMAN DIGNITY (10.1 → 16.0) ──
-      switchTab(10.1, 2, 0);
-      hoverItem(10.6, 2, 0);  // Clean water ($114B)
-      hoverItem(11.5, 2, 2);  // End world hunger ($40B)
-      hoverItem(12.6, 2, 5);  // Eradicate malaria ($6B)
-      hoverItem(13.6, 2, 7);  // Eradicate polio ($1.2B)
-      // hold on polio — the rhetorical landing — until 16.0
+      // ── HUMAN DIGNITY (9.9 → 14.4s) ──
+      switchTab(9.9, 2, 0);
+      hoverItem(10.0, 2, 0);  // Clean water
+      hoverItem(10.9, 2, 2);  // End world hunger
+      hoverItem(11.8, 2, 5);  // Eradicate malaria
+      hoverItem(12.7, 2, 7);  // Eradicate polio (final hold ~1.7s)
 
-      // ─── SCENE 3 — CTA ───
+      // ─── SCENE 3 — CTA (crossfade in) ───
       tl.to("#scene-3", {
         opacity: 1,
         duration: 0.4, ease: "power2.inOut",
-      }, 16.7);
+      }, 14.7);
 
       tl.from("#scene-3 .s3-tagline", {
         y: 40, opacity: 0,
-        duration: 0.7, ease: "power3.out",
-      }, 16.9);
+        duration: 0.65, ease: "power3.out",
+      }, 14.9);
+      tl.from("#scene-3 .s3-sub", {
+        y: 25, opacity: 0,
+        duration: 0.5, ease: "power2.out",
+      }, 15.2);
       tl.from("#scene-3 .cta-url", {
         y: 25, opacity: 0,
         duration: 0.5, ease: "power2.out",
-      }, 17.4);
+      }, 15.45);
       tl.from("#scene-3 .cta-github", {
         y: 20, opacity: 0,
         duration: 0.45, ease: "power2.out",
-      }, 17.7);
+      }, 15.7);
 
       tl.to("#scene-3", {
         opacity: 0,
         duration: 0.4, ease: "power2.in",
-      }, 19.55);
+      }, 17.55);
 
       window.__timelines["main"] = tl;
     </script>
