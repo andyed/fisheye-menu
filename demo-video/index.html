@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="stylesheet" href="../fisheye-menu.css" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="./fisheye-menu.bundle.js"></script>
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body {
@@ -16,16 +18,10 @@
         color: #c0c0c0;
       }
 
-      /* ── Scene frames ─────────────────────────────── */
-      .scene {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-      }
+      .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-      /* ── Scene 1: Title ───────────────────────────── */
-      .scene-1-content {
+      /* ── Scene 1: Title ──────────────────────────── */
+      .s1-content {
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -33,155 +29,180 @@
         width: 100%;
         height: 100%;
         padding: 120px;
-        gap: 36px;
+        gap: 40px;
         box-sizing: border-box;
       }
       .title {
-        font-size: 160px;
+        font-size: 116px;
         font-weight: 800;
         color: #e6e4d2;
-        letter-spacing: -0.04em;
-        line-height: 0.95;
+        letter-spacing: -0.035em;
+        line-height: 1.0;
+        text-align: center;
       }
-      .title .accent {
-        color: #ff9595;
-        display: inline-block;
-      }
+      .title .accent { color: #ff9595; }
       .subtitle {
-        font-size: 46px;
+        font-size: 38px;
         font-weight: 400;
         color: #c0c0c0;
         letter-spacing: 0.01em;
         text-align: center;
+        max-width: 1300px;
+        line-height: 1.3;
       }
 
-      /* ── Scene 2: Menu + flyout demo ──────────────── */
-      .scene-2-content {
+      /* ── Scene 2: Menu ───────────────────────────── */
+      .s2-content {
         display: flex;
         flex-direction: column;
-        justify-content: center;
         align-items: center;
         width: 100%;
         height: 100%;
-        padding: 60px 120px;
-        gap: 48px;
+        padding: 80px 80px 60px;
+        gap: 36px;
         box-sizing: border-box;
       }
-      .caption-slot {
+      .s2-caption {
         position: relative;
-        height: 100px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
         width: 100%;
       }
-      .menu-caption {
+      .s2-caption .text {
         position: absolute;
-        font-size: 38px;
+        font-size: 28px;
         font-weight: 500;
         color: #c0c0c0;
         text-align: center;
-        max-width: 1400px;
-        line-height: 1.3;
       }
-      .menu-caption .hl { color: #ff9595; font-weight: 600; }
+      .s2-caption .hl { color: #ff9595; font-weight: 600; }
 
+      /* The menu stage holds menubar + the active panel + cursor */
       .menu-stage {
         position: relative;
-        width: 1200px;
-        height: 640px;
+        width: 1280px;
+        height: 720px;
       }
 
-      /* Menu panel — fixed position inside stage */
-      .menu {
+      /* ── Custom menubar ── */
+      .menubar {
         position: absolute;
-        left: 180px;
-        top: 40px;
-        width: 440px;
-        background: #16213e;
-        border: 1px solid #0f3460;
-        border-radius: 8px;
-        padding: 12px 0;
-        box-shadow: 0 16px 64px rgba(0, 0, 0, 0.7);
-      }
-      .menu-item {
-        display: flex;
-        align-items: center;
-        padding: 0 24px;
-        color: #c0c0c0;
-        font-size: 28px;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        height: 72px;
-        background: #16213e;
-      }
-      .menu-item .label { flex: 1; }
-      .menu-item .arrow {
-        font-size: 20px;
-        color: #c0c0c0;
-        opacity: 0.55;
-        margin-left: 12px;
-      }
-
-      /* Flyout panel — appears to right of menu */
-      .flyout {
-        position: absolute;
-        left: 628px;
-        top: 232px;
-        width: 300px;
-        background: #1e2a4a;
-        border: 1px solid #0f3460;
-        border-radius: 8px;
-        padding: 12px 0;
-        box-shadow: 0 16px 64px rgba(0, 0, 0, 0.7);
-        opacity: 0;
-      }
-      .flyout-item {
-        display: flex;
-        align-items: center;
-        padding: 0 24px;
-        color: #c0c0c0;
-        font-size: 24px;
-        font-weight: 500;
-        white-space: nowrap;
-        overflow: hidden;
-        height: 56px;
-        background: #1e2a4a;
-      }
-
-      /* Free-travel triangle overlay — sits above menu + flyout, below cursor */
-      .safe-zone {
-        position: absolute;
-        left: 0;
         top: 0;
-        width: 1200px;
-        height: 640px;
-        pointer-events: none;
+        left: 0;
+        display: flex;
+        background: var(--fisheye-bar-bg);
+        border: 1px solid var(--fisheye-bar-border);
+        border-radius: 8px;
+        height: 80px;
+        padding: 0 16px;
+        z-index: 10;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+      }
+      .menubar-item {
+        display: flex;
+        align-items: center;
+        padding: 0 32px;
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--fisheye-bar-text);
+        cursor: default;
+        position: relative;
+      }
+      .menubar-item.active {
+        background: var(--fisheye-bar-hover-bg);
+        color: var(--fisheye-bar-hover-text);
+        border-radius: 6px;
+        margin: 8px 4px;
+        padding: 0 28px;
+      }
+
+      /* ── Custom panel + items with sparkline bars ── */
+      .panel {
+        position: absolute;
+        top: 96px;
+        left: 0;
+        width: 880px;
+        background: var(--fisheye-panel-bg);
+        border: 1px solid var(--fisheye-panel-border);
+        border-radius: 8px;
+        padding: 12px 0;
+        box-shadow: 0 16px 64px rgba(0, 0, 0, 0.7);
         opacity: 0;
         z-index: 5;
       }
 
-      /* Cursor — classic NW-pointing arrow pointer; tip at top-left of SVG */
+      .item {
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        gap: 20px;
+        height: 72px; /* baseline — overridden inline by GSAP */
+        overflow: hidden;
+        color: #c0c0c0;
+        background: var(--fisheye-panel-bg);
+      }
+      .item.highlighted {
+        background: var(--fisheye-item-hover-bg);
+        color: #ffffff;
+      }
+      .item-name {
+        flex: 0 0 280px;
+        font-size: 24px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .item-bar {
+        flex: 1;
+        height: 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 3px;
+        position: relative;
+        overflow: hidden;
+      }
+      .item-bar-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        background: #ff9595;
+        opacity: 0.55;
+        border-radius: 3px;
+      }
+      .item.highlighted .item-bar-fill {
+        opacity: 0.95;
+        background: #ffd6d6;
+      }
+      .item-amount {
+        flex: 0 0 110px;
+        text-align: right;
+        font-size: 24px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #e6e4d2;
+        letter-spacing: -0.01em;
+      }
+
+      /* Cursor — coral arrow */
       .cursor {
         position: absolute;
-        left: 650px;
-        top: 40px;
+        left: 0;
+        top: 0;
         width: 40px;
         height: 40px;
-        z-index: 10;
+        z-index: 1500;
         filter: drop-shadow(0 0 8px rgba(255, 149, 149, 0.6))
           drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
         pointer-events: none;
       }
-      .cursor svg {
-        width: 100%;
-        height: 100%;
-        display: block;
-      }
+      .cursor svg { width: 100%; height: 100%; display: block; }
 
-      /* ── Scene 3: CTA ─────────────────────────────── */
-      .scene-3-content {
+      /* ── Scene 3: CTA ────────────────────────────── */
+      .s3-content {
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -189,17 +210,28 @@
         width: 100%;
         height: 100%;
         padding: 120px;
-        gap: 28px;
+        gap: 24px;
         box-sizing: border-box;
       }
-      .cta-url {
-        font-size: 72px;
+      .s3-tagline {
+        font-size: 64px;
         font-weight: 700;
         color: #e6e4d2;
         letter-spacing: -0.015em;
+        text-align: center;
+        max-width: 1500px;
+        line-height: 1.2;
+      }
+      .s3-tagline .hl { color: #ff9595; }
+      .cta-url {
+        font-size: 44px;
+        font-weight: 700;
+        color: #e6e4d2;
+        letter-spacing: -0.01em;
+        margin-top: 28px;
       }
       .cta-github {
-        font-size: 32px;
+        font-size: 24px;
         font-weight: 400;
         color: #c0c0c0;
         letter-spacing: 0.04em;
@@ -211,59 +243,40 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="14.5"
+      data-duration="20"
       data-width="1920"
       data-height="1080"
     >
-      <!-- Scene 1: Title (0 → 2.6s) -->
-      <div id="scene-1" class="clip scene" data-start="0" data-duration="2.6" data-track-index="0">
-        <div class="scene-1-content">
-          <div class="title">Fisheye<span class="accent">·</span>Menu</div>
-          <div class="subtitle">Fitts's Law, in cascading menus.</div>
+      <!-- Scene 1: Title (0 → 3.2s) -->
+      <div id="scene-1" class="clip scene" data-start="0" data-duration="3.2" data-track-index="0">
+        <div class="s1-content">
+          <div class="title">
+            Three ways to spend<br />
+            <span class="accent">a trillion dollars.</span>
+          </div>
+          <div class="subtitle">
+            What we choose to fund — visualized as a menu you can scan.
+          </div>
         </div>
       </div>
 
-      <!-- Scene 2: Menu + flyout demo (2.3 → 12.6s) -->
-      <div id="scene-2" class="clip scene" data-start="2.3" data-duration="10.3" data-track-index="1">
-        <div class="scene-2-content">
-          <div class="caption-slot">
-            <div id="caption-a" class="menu-caption">
-              Items near your cursor <span class="hl">expand</span>. Distant items stay clickable.
+      <!-- Scene 2: Menu (2.9 → 17s) -->
+      <div id="scene-2" class="clip scene" data-start="2.9" data-duration="14.1" data-track-index="1">
+        <div class="s2-content">
+          <div class="s2-caption">
+            <div id="cap-a" class="text">
+              <span class="hl">War.</span> The headline numbers.
             </div>
-            <div id="caption-b" class="menu-caption" style="opacity: 0;">
-              Flyouts stay open on the <span class="hl">diagonal</span>. No dogleg needed.
+            <div id="cap-b" class="text" style="opacity: 0;">
+              <span class="hl">Tech.</span> Where capital chases capital.
+            </div>
+            <div id="cap-c" class="text" style="opacity: 0;">
+              <span class="hl">Human dignity.</span> The bills nobody pays.
             </div>
           </div>
-          <div class="menu-stage">
-            <!-- Safe-zone triangle overlay (hidden until flyout opens) -->
-            <svg id="safe-zone" class="safe-zone" viewBox="0 0 1200 640">
-              <polygon id="triangle"
-                points="400,376 628,232 628,442"
-                fill="rgba(255, 149, 149, 0.22)"
-                stroke="#ff9595"
-                stroke-width="2.5"
-                stroke-dasharray="10,6" />
-            </svg>
-            <!-- Main menu -->
-            <div class="menu">
-              <div class="menu-item" id="item-0"><span class="label">File</span></div>
-              <div class="menu-item" id="item-1"><span class="label">Edit</span></div>
-              <div class="menu-item" id="item-2"><span class="label">View</span></div>
-              <div class="menu-item" id="item-3">
-                <span class="label">Insert</span>
-                <span class="arrow">▸</span>
-              </div>
-              <div class="menu-item" id="item-4"><span class="label">Format</span></div>
-              <div class="menu-item" id="item-5"><span class="label">Help</span></div>
-            </div>
-            <!-- Flyout (hidden until Insert is active) -->
-            <div class="flyout" id="flyout">
-              <div class="flyout-item" id="fly-0"><span class="label">Image</span></div>
-              <div class="flyout-item" id="fly-1"><span class="label">Table</span></div>
-              <div class="flyout-item" id="fly-2"><span class="label">Link</span></div>
-              <div class="flyout-item" id="fly-3"><span class="label">Code block</span></div>
-            </div>
-            <!-- Cursor — classic NW pointer, tip at (2,2) in SVG coords -->
+          <div class="menu-stage" id="menu-stage">
+            <div class="menubar" id="menubar"></div>
+            <div class="panel" id="panel"></div>
             <div class="cursor" id="cursor">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -278,172 +291,264 @@
         </div>
       </div>
 
-      <!-- Scene 3: CTA (12.3 → 14.5s) -->
-      <div id="scene-3" class="clip scene" data-start="12.3" data-duration="2.2" data-track-index="2">
-        <div class="scene-3-content">
-          <div class="cta-url">andyed.github.io/fisheye-menu</div>
-          <div class="cta-github">MIT · github.com/andyed/fisheye-menu</div>
+      <!-- Scene 3: CTA (16.7 → 20s) -->
+      <div id="scene-3" class="clip scene" data-start="16.7" data-duration="3.3" data-track-index="2">
+        <div class="s3-content">
+          <div class="s3-tagline">
+            We have <span class="hl">$40 B</span> for hunger, every year.<br />
+            We just don't pick it.
+          </div>
+          <div class="cta-url">scrutinizer.app · andyed.github.io/fisheye-menu</div>
+          <div class="cta-github">MIT · github.com/andyed/fisheye-menu · sources in README</div>
         </div>
       </div>
     </div>
 
     <script>
+      // ── Real fisheye math from fisheye-core.js (bundled) ──
+      const { computeFisheyeHeights, computeDefaultHeights } = window.FisheyeMenu;
+
+      // ── Resource-allocation data ──
+      // Short labels + amount in billions USD. Sources documented in README.
+      const CATEGORIES = [
+        {
+          tab: "WAR",
+          items: [
+            { name: "Iraq + Afghanistan",  amount: 8000,  unit: "$8T" },
+            { name: "Global military",     amount: 2443,  unit: "$2.4T/yr" },
+            { name: "F-35 program",        amount: 1700,  unit: "$1.7T" },
+            { name: "US Defense (DoD)",    amount: 886,   unit: "$886B/yr" },
+            { name: "US nukes (10y)",      amount: 634,   unit: "$634B" },
+            { name: "China PLA",           amount: 296,   unit: "$296B/yr" },
+          ],
+        },
+        {
+          tab: "TECH",
+          items: [
+            { name: "Stargate AI infra",   amount: 500,   unit: "$500B" },
+            { name: "Amazon tech & R&D",   amount: 86,    unit: "$86B/yr" },
+            { name: "CHIPS Act (US)",      amount: 52,    unit: "$52B" },
+            { name: "Alphabet R&D",        amount: 45,    unit: "$45B/yr" },
+            { name: "Meta R&D",            amount: 38,    unit: "$38B/yr" },
+            { name: "Apple R&D",           amount: 30,    unit: "$30B/yr" },
+            { name: "Microsoft R&D",       amount: 27,    unit: "$27B/yr" },
+            { name: "NVIDIA R&D",          amount: 9,     unit: "$9B/yr" },
+          ],
+        },
+        {
+          tab: "HUMAN DIGNITY",
+          items: [
+            { name: "Clean water (world)", amount: 114,   unit: "$114B/yr" },
+            { name: "Universal pre-K",     amount: 70,    unit: "$70B/yr" },
+            { name: "End world hunger",    amount: 40,    unit: "$40B/yr" },
+            { name: "House the homeless",  amount: 20,    unit: "$20B/yr" },
+            { name: "Cancer research",     amount: 8,     unit: "$8B/yr" },
+            { name: "Eradicate malaria",   amount: 6,     unit: "$6B/yr" },
+            { name: "Family planning",     amount: 5,     unit: "$5B/yr" },
+            { name: "Eradicate polio",     amount: 1.2,   unit: "$1.2B" },
+          ],
+        },
+      ];
+
+      // Global max for sparkline scaling (so cross-category contrast lands)
+      const MAX_AMOUNT = 8000;
+      const BAR_AVAILABLE_PX = 380; // visible bar width inside .item-bar
+      function barWidthPx(amount) {
+        // sqrt scale: keeps small items visible, big items dominant
+        return Math.max(6, Math.sqrt(amount / MAX_AMOUNT) * BAR_AVAILABLE_PX);
+      }
+
+      // ── Build menubar + panel(s) ──
+      const menubarEl = document.getElementById("menubar");
+      const panelEl = document.getElementById("panel");
+
+      CATEGORIES.forEach((cat, idx) => {
+        const tab = document.createElement("div");
+        tab.className = "menubar-item";
+        tab.dataset.idx = idx;
+        tab.textContent = cat.tab;
+        menubarEl.appendChild(tab);
+      });
+
+      // Build items for a category. Each item gets name + sparkline + amount.
+      function renderPanel(catIdx) {
+        const cat = CATEGORIES[catIdx];
+        panelEl.innerHTML = "";
+        cat.items.forEach((it, i) => {
+          const row = document.createElement("div");
+          row.className = "item";
+          row.dataset.idx = i;
+          row.innerHTML = `
+            <div class="item-name">${it.name}</div>
+            <div class="item-bar">
+              <div class="item-bar-fill" style="width: ${barWidthPx(it.amount).toFixed(1)}px;"></div>
+            </div>
+            <div class="item-amount">${it.unit}</div>
+          `;
+          panelEl.appendChild(row);
+        });
+      }
+
+      // Apply fisheye heights to the active panel using the real algorithm.
+      function applyFisheye(hoveredIdx) {
+        const items = panelEl.querySelectorAll(".item");
+        const n = items.length;
+        if (n === 0) return;
+        const baseHeight = 78;
+        const totalHeight = n * baseHeight;
+        const config = { maxExpand: 2.6, minHeight: 42, falloffRadius: 3 };
+        const heights = hoveredIdx < 0
+          ? computeDefaultHeights(n, totalHeight, config)
+          : computeFisheyeHeights(n, hoveredIdx, totalHeight, config);
+        heights.forEach((h, i) => {
+          items[i].style.height = `${h.toFixed(1)}px`;
+          items[i].classList.toggle("highlighted", i === hoveredIdx);
+        });
+      }
+
+      function activateTab(idx) {
+        document.querySelectorAll(".menubar-item").forEach((el) => {
+          el.classList.toggle("active", parseInt(el.dataset.idx, 10) === idx);
+        });
+        renderPanel(idx);
+        applyFisheye(-1);
+      }
+
+      // Move cursor (visible SVG) to align tip with element center.
+      function cursorToElement(el, opts = {}) {
+        if (!el) return null;
+        const rect = el.getBoundingClientRect();
+        const stage = document.getElementById("menu-stage").getBoundingClientRect();
+        const cx = (opts.x !== undefined ? opts.x : rect.left + rect.width / 2) - stage.left - 3;
+        const cy = (opts.y !== undefined ? opts.y : rect.top + rect.height / 2) - stage.top - 3;
+        return { x: cx, y: cy };
+      }
+
+      // Initial render
+      activateTab(0);
+
+      // ── GSAP timeline ──
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
 
-      // Set scene 2 + 3 invisible at t=0 so their fade-ins are the transitions.
       tl.set("#scene-2", { opacity: 0 }, 0);
       tl.set("#scene-3", { opacity: 0 }, 0);
+      tl.set("#cursor", { x: 80, y: 40 }, 0);
 
-      // ─── SCENE 1 — Title (entrances only) ───
+      // ─── SCENE 1 — Title ───
       tl.from("#scene-1 .title", {
         y: 70, opacity: 0,
-        duration: 0.65, ease: "power3.out",
-      }, 0.25);
+        duration: 0.7, ease: "power3.out",
+      }, 0.3);
       tl.from("#scene-1 .title .accent", {
-        scale: 0, rotation: -120,
-        duration: 0.55, ease: "back.out(2.2)",
-      }, 0.55);
+        opacity: 0,
+        duration: 0.5, ease: "power2.out",
+      }, 0.85);
       tl.from("#scene-1 .subtitle", {
-        y: 40, opacity: 0,
+        y: 35, opacity: 0,
         duration: 0.55, ease: "power2.out",
-      }, 0.5);
+      }, 0.9);
 
-      // ─── SCENE 2 — Menu + flyout + safe zone (crossfade in over scene 1) ───
+      // ─── SCENE 2 — Menu (crossfade in) ───
       tl.to("#scene-2", {
         opacity: 1,
-        duration: 0.35, ease: "power2.inOut",
-      }, 2.3);
+        duration: 0.4, ease: "power2.inOut",
+      }, 2.9);
 
-      tl.from("#caption-a", {
-        y: -30, opacity: 0,
-        duration: 0.5, ease: "power2.out",
-      }, 2.5);
-      tl.from("#scene-2 .menu", {
-        scale: 0.94, opacity: 0,
-        duration: 0.55, ease: "expo.out",
-      }, 2.65);
-      tl.from("#cursor", {
-        opacity: 0, scale: 0,
-        duration: 0.4, ease: "back.out(1.8)",
-      }, 3.0);
+      tl.from("#cap-a", { y: -25, opacity: 0, duration: 0.5, ease: "power2.out" }, 3.05);
+      tl.from("#menubar", { y: -20, opacity: 0, duration: 0.55, ease: "expo.out" }, 3.15);
+      tl.fromTo("#panel",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" },
+        3.4
+      );
+      tl.from("#cursor", { opacity: 0, scale: 0, duration: 0.4, ease: "back.out(1.8)" }, 3.5);
 
-      // ── Fisheye expansion: cursor walks down to Insert (item 3) ──
-      // Baseline: 6 items × 72px = 432px menu height, padding 24 → 456.
-      // State B (cursor at Insert / item 3):
-      //   heights [56, 88, 108, 144, 108, 88] — Insert at 144, neighbors compressed.
-      //
-      // Menu interior y-positions in State B (from menu top-edge, padding=12):
-      //   item 0: 12-68,  item 1: 68-156,  item 2: 156-264,
-      //   item 3: 264-408, item 4: 408-516, item 5: 516-604
-      //
-      // Menu is positioned at left=180, top=40 in stage. So in stage coords:
-      //   item-3 spans y=304-448, center y=376.
-      //   Insert's right edge (where cursor sits to activate): x = 180+440 = 620.
+      // Helper: hover item idx in the active panel + move cursor + apply fisheye
+      function hoverItem(t, catIdx, itemIdx) {
+        tl.call(() => {
+          // Ensure correct tab is active
+          if (parseInt(document.querySelector(".menubar-item.active")?.dataset.idx ?? "-1", 10) !== catIdx) {
+            activateTab(catIdx);
+          }
+          applyFisheye(itemIdx);
+          const items = panelEl.querySelectorAll(".item");
+          const target = items[itemIdx];
+          const pos = cursorToElement(target);
+          if (pos) gsap.to("#cursor", { x: pos.x, y: pos.y, duration: 0.45, ease: "power2.inOut" });
+        }, null, t);
+      }
 
-      // Cursor lives CSS-anchored at (650, 40). GSAP x/y are deltas from there.
-      // Descent to Insert: cursor tip should land ~ (400, 376) — on the Insert item
-      // Element offset from tip (tip at 3,3 in 40px element) = (element.left = tip-3, element.top = tip-3)
-      // Target element = (397, 373). Delta from CSS (650, 40) = (-253, 333).
-      tl.to("#cursor", { x: -253, y: 333, duration: 1.0, ease: "power2.inOut" }, 3.2);
+      function switchTab(t, catIdx, initialItemIdx) {
+        tl.call(() => {
+          activateTab(catIdx);
+          applyFisheye(initialItemIdx);
+          const items = panelEl.querySelectorAll(".item");
+          const target = items[initialItemIdx];
+          const pos = cursorToElement(target);
+          if (pos) gsap.set("#cursor", { x: pos.x, y: pos.y });
+        }, null, t);
+      }
 
-      // Fisheye expand to STATE B
-      const stateB = [56, 88, 108, 144, 108, 88];
-      stateB.forEach((h, i) => {
-        tl.to("#item-" + i, {
-          height: h,
-          backgroundColor: i === 3 ? "#533483" : "#16213e",
-          color: i === 3 ? "#ffffff" : "#c0c0c0",
-          duration: 0.4, ease: "power2.out",
-        }, 3.6);
-      });
+      // ── WAR (3.7 → 6.5) ──
+      // Walk 1, 2, 4 — Iraq+Afghan, Global mil, US nukes
+      hoverItem(3.8, 0, 0);  // Iraq+Afghan ($8T)
+      hoverItem(4.6, 0, 2);  // F-35 ($1.7T)
+      hoverItem(5.4, 0, 4);  // US nukes ($634B)
 
-      // ── Flyout opens ──
-      // Insert top in stage coords: y=304. Flyout top aligns at y=232 (actually anchored
-      // near Insert's top; CSS puts flyout at top=232 — matches roughly). Flyout slides
-      // in from the left (scale X + fade).
-      tl.fromTo("#flyout",
-        { opacity: 0, scaleX: 0.85, transformOrigin: "left center" },
-        { opacity: 1, scaleX: 1, duration: 0.45, ease: "power3.out" },
-        4.5
+      // Caption A → B
+      tl.to("#cap-a", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 6.4);
+      tl.fromTo("#cap-b",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+        6.6
       );
 
-      // ── Caption crossfade: A → B ──
-      tl.to("#caption-a", {
-        opacity: 0, y: -18,
-        duration: 0.35, ease: "power2.in",
-      }, 5.0);
-      tl.fromTo("#caption-b",
-        { opacity: 0, y: 22 },
-        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
-        5.25
+      // ── TECH (6.8 → 9.5) ──
+      switchTab(6.8, 1, 0);
+      hoverItem(7.4, 1, 0);  // Stargate ($500B)
+      hoverItem(8.2, 1, 3);  // Alphabet R&D ($45B)
+      hoverItem(9.0, 1, 7);  // NVIDIA R&D ($9B)
+
+      // Caption B → C
+      tl.to("#cap-b", { opacity: 0, y: -16, duration: 0.3, ease: "power2.in" }, 9.7);
+      tl.fromTo("#cap-c",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" },
+        9.9
       );
 
-      // ── Safe-zone triangle appears ──
-      // Triangle anchored at cursor tip (400, 376) and flyout left edge.
-      // Updated polygon points in SVG below: "400,376 628,232 628,442"
-      tl.fromTo("#safe-zone",
-        { opacity: 0, scale: 0.92, transformOrigin: "50% 50%" },
-        { opacity: 1, scale: 1, duration: 0.55, ease: "power3.out" },
-        5.8
-      );
+      // ── HUMAN DIGNITY (10.1 → 16.0) ──
+      switchTab(10.1, 2, 0);
+      hoverItem(10.6, 2, 0);  // Clean water ($114B)
+      hoverItem(11.5, 2, 2);  // End world hunger ($40B)
+      hoverItem(12.6, 2, 5);  // Eradicate malaria ($6B)
+      hoverItem(13.6, 2, 7);  // Eradicate polio ($1.2B)
+      // hold on polio — the rhetorical landing — until 16.0
 
-      // ── Beat — let the viewer see the zone ──
-      // (no animation 6.35 → 7.0)
-
-      // ── Diagonal travel: cursor moves down-right, through the safe zone ──
-      // From cursor position (480, 376) to flyout item 2 "Link" center (778, 316+12+2*56+28=368)
-      // Actually flyout item centers (y):
-      //   fly-0: 232 + 12 + 28 = 272
-      //   fly-1: 232 + 12 + 56 + 28 = 328
-      //   fly-2: 232 + 12 + 112 + 28 = 384
-      //   fly-3: 232 + 12 + 168 + 28 = 440
-      // Flyout item centers (x): 628 + 150 = 778
-
-      // Diagonal to "Table" (fly-1) center (778, 328) — inside the safe-zone triangle.
-      // Cursor tip target: (778, 328). Element offset (-3, -3) → (775, 325).
-      // Delta from CSS (650, 40) = (125, 285).
-      tl.to("#cursor", {
-        x: 125, y: 285,
-        duration: 1.6, ease: "power2.inOut",
-      }, 7.0);
-
-      // Highlight "Table" in flyout
-      tl.to("#fly-1", {
-        backgroundColor: "#533483",
-        color: "#ffffff",
-        duration: 0.35, ease: "power2.out",
-      }, 8.2);
-
-      // ── Safe zone fades slightly as user "arrives" ──
-      tl.to("#safe-zone", {
-        opacity: 0.4,
-        duration: 0.4, ease: "power2.out",
-      }, 8.2);
-
-      // Hold final state (cursor on Table, flyout open, Format/Help un-switched)
-      // 8.6 → 12.3 — ~3.7s of holdtime minus scene-3 fade-in overlap
-
-      // ─── SCENE 3 — CTA (crossfade over scene 2) ───
+      // ─── SCENE 3 — CTA ───
       tl.to("#scene-3", {
         opacity: 1,
-        duration: 0.35, ease: "power2.inOut",
-      }, 12.3);
+        duration: 0.4, ease: "power2.inOut",
+      }, 16.7);
 
+      tl.from("#scene-3 .s3-tagline", {
+        y: 40, opacity: 0,
+        duration: 0.7, ease: "power3.out",
+      }, 16.9);
       tl.from("#scene-3 .cta-url", {
-        y: 50, opacity: 0,
-        duration: 0.6, ease: "power3.out",
-      }, 12.5);
-      tl.from("#scene-3 .cta-github", {
-        y: 28, opacity: 0,
+        y: 25, opacity: 0,
         duration: 0.5, ease: "power2.out",
-      }, 12.8);
+      }, 17.4);
+      tl.from("#scene-3 .cta-github", {
+        y: 20, opacity: 0,
+        duration: 0.45, ease: "power2.out",
+      }, 17.7);
 
-      // Final fade — only the last scene may have exit animations
       tl.to("#scene-3", {
         opacity: 0,
         duration: 0.4, ease: "power2.in",
-      }, 14.05);
+      }, 19.55);
 
       window.__timelines["main"] = tl;
     </script>
