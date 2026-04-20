@@ -55,7 +55,7 @@
         text-align: center;
       }
 
-      /* ── Scene 2: Menu demo ───────────────────────── */
+      /* ── Scene 2: Menu + flyout demo ──────────────── */
       .scene-2-content {
         display: flex;
         flex-direction: column;
@@ -63,44 +63,53 @@
         align-items: center;
         width: 100%;
         height: 100%;
-        padding: 80px 120px;
-        gap: 64px;
+        padding: 60px 120px;
+        gap: 48px;
         box-sizing: border-box;
       }
+      .caption-slot {
+        position: relative;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
       .menu-caption {
+        position: absolute;
         font-size: 38px;
         font-weight: 500;
         color: #c0c0c0;
         text-align: center;
-        max-width: 1200px;
+        max-width: 1400px;
         line-height: 1.3;
       }
-      .menu-caption .hl {
-        color: #ff9595;
-        font-weight: 600;
-      }
+      .menu-caption .hl { color: #ff9595; font-weight: 600; }
+
       .menu-stage {
         position: relative;
-        width: 900px;
-        height: 560px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 1200px;
+        height: 640px;
       }
+
+      /* Menu panel — fixed position inside stage */
       .menu {
+        position: absolute;
+        left: 180px;
+        top: 40px;
+        width: 440px;
         background: #16213e;
         border: 1px solid #0f3460;
         border-radius: 8px;
         padding: 12px 0;
         box-shadow: 0 16px 64px rgba(0, 0, 0, 0.7);
-        width: 480px;
       }
       .menu-item {
         display: flex;
         align-items: center;
-        padding: 0 28px;
+        padding: 0 24px;
         color: #c0c0c0;
-        font-size: 30px;
+        font-size: 28px;
         font-weight: 500;
         white-space: nowrap;
         overflow: hidden;
@@ -108,17 +117,67 @@
         background: #16213e;
       }
       .menu-item .label { flex: 1; }
+      .menu-item .arrow {
+        font-size: 20px;
+        color: #c0c0c0;
+        opacity: 0.55;
+        margin-left: 12px;
+      }
+
+      /* Flyout panel — appears to right of menu */
+      .flyout {
+        position: absolute;
+        left: 628px;
+        top: 232px;
+        width: 300px;
+        background: #1e2a4a;
+        border: 1px solid #0f3460;
+        border-radius: 8px;
+        padding: 12px 0;
+        box-shadow: 0 16px 64px rgba(0, 0, 0, 0.7);
+        opacity: 0;
+      }
+      .flyout-item {
+        display: flex;
+        align-items: center;
+        padding: 0 24px;
+        color: #c0c0c0;
+        font-size: 24px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        height: 56px;
+        background: #1e2a4a;
+      }
+
+      /* Free-travel triangle overlay — sits above menu + flyout, below cursor */
+      .safe-zone {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1200px;
+        height: 640px;
+        pointer-events: none;
+        opacity: 0;
+        z-index: 5;
+      }
+
+      /* Cursor — classic NW-pointing arrow pointer; tip at top-left of SVG */
       .cursor {
         position: absolute;
-        left: 720px;
-        top: 100px;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: #ff9595;
-        box-shadow: 0 0 28px rgba(255, 149, 149, 0.55),
-          inset 0 0 6px rgba(255, 255, 255, 0.5);
+        left: 650px;
+        top: 40px;
+        width: 40px;
+        height: 40px;
         z-index: 10;
+        filter: drop-shadow(0 0 8px rgba(255, 149, 149, 0.6))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+        pointer-events: none;
+      }
+      .cursor svg {
+        width: 100%;
+        height: 100%;
+        display: block;
       }
 
       /* ── Scene 3: CTA ─────────────────────────────── */
@@ -152,40 +211,75 @@
       id="root"
       data-composition-id="main"
       data-start="0"
-      data-duration="10"
+      data-duration="14.5"
       data-width="1920"
       data-height="1080"
     >
-      <!-- Scene 1: Title (0 → 2.9s) -->
-      <div id="scene-1" class="clip scene" data-start="0" data-duration="2.9" data-track-index="0">
+      <!-- Scene 1: Title (0 → 2.6s) -->
+      <div id="scene-1" class="clip scene" data-start="0" data-duration="2.6" data-track-index="0">
         <div class="scene-1-content">
           <div class="title">Fisheye<span class="accent">·</span>Menu</div>
           <div class="subtitle">Fitts's Law, in cascading menus.</div>
         </div>
       </div>
 
-      <!-- Scene 2: Menu demo (2.6 → 7.7s — 0.3s crossfade overlap with scene 1) -->
-      <div id="scene-2" class="clip scene" data-start="2.6" data-duration="5.1" data-track-index="1">
+      <!-- Scene 2: Menu + flyout demo (2.3 → 12.6s) -->
+      <div id="scene-2" class="clip scene" data-start="2.3" data-duration="10.3" data-track-index="1">
         <div class="scene-2-content">
-          <div class="menu-caption">
-            Items near your cursor <span class="hl">expand</span>. Distant items stay clickable.
+          <div class="caption-slot">
+            <div id="caption-a" class="menu-caption">
+              Items near your cursor <span class="hl">expand</span>. Distant items stay clickable.
+            </div>
+            <div id="caption-b" class="menu-caption" style="opacity: 0;">
+              Flyouts stay open on the <span class="hl">diagonal</span>. No dogleg needed.
+            </div>
           </div>
           <div class="menu-stage">
+            <!-- Safe-zone triangle overlay (hidden until flyout opens) -->
+            <svg id="safe-zone" class="safe-zone" viewBox="0 0 1200 640">
+              <polygon id="triangle"
+                points="400,376 628,232 628,442"
+                fill="rgba(255, 149, 149, 0.22)"
+                stroke="#ff9595"
+                stroke-width="2.5"
+                stroke-dasharray="10,6" />
+            </svg>
+            <!-- Main menu -->
             <div class="menu">
               <div class="menu-item" id="item-0"><span class="label">File</span></div>
               <div class="menu-item" id="item-1"><span class="label">Edit</span></div>
               <div class="menu-item" id="item-2"><span class="label">View</span></div>
-              <div class="menu-item" id="item-3"><span class="label">Insert</span></div>
+              <div class="menu-item" id="item-3">
+                <span class="label">Insert</span>
+                <span class="arrow">▸</span>
+              </div>
               <div class="menu-item" id="item-4"><span class="label">Format</span></div>
               <div class="menu-item" id="item-5"><span class="label">Help</span></div>
             </div>
-            <div class="cursor" id="cursor"></div>
+            <!-- Flyout (hidden until Insert is active) -->
+            <div class="flyout" id="flyout">
+              <div class="flyout-item" id="fly-0"><span class="label">Image</span></div>
+              <div class="flyout-item" id="fly-1"><span class="label">Table</span></div>
+              <div class="flyout-item" id="fly-2"><span class="label">Link</span></div>
+              <div class="flyout-item" id="fly-3"><span class="label">Code block</span></div>
+            </div>
+            <!-- Cursor — classic NW pointer, tip at (2,2) in SVG coords -->
+            <div class="cursor" id="cursor">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M2 2 L2 20 L7 15.5 L10.2 22.2 L12.4 21.2 L9.3 14.6 L16 14.6 Z"
+                  fill="#ff9595"
+                  stroke="#0a0a1a"
+                  stroke-width="1.2"
+                  stroke-linejoin="round" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Scene 3: CTA (7.4 → 10s — 0.3s crossfade overlap with scene 2) -->
-      <div id="scene-3" class="clip scene" data-start="7.4" data-duration="2.6" data-track-index="2">
+      <!-- Scene 3: CTA (12.3 → 14.5s) -->
+      <div id="scene-3" class="clip scene" data-start="12.3" data-duration="2.2" data-track-index="2">
         <div class="scene-3-content">
           <div class="cta-url">andyed.github.io/fisheye-menu</div>
           <div class="cta-github">MIT · github.com/andyed/fisheye-menu</div>
@@ -196,6 +290,10 @@
     <script>
       window.__timelines = window.__timelines || {};
       const tl = gsap.timeline({ paused: true });
+
+      // Set scene 2 + 3 invisible at t=0 so their fade-ins are the transitions.
+      tl.set("#scene-2", { opacity: 0 }, 0);
+      tl.set("#scene-3", { opacity: 0 }, 0);
 
       // ─── SCENE 1 — Title (entrances only) ───
       tl.from("#scene-1 .title", {
@@ -211,35 +309,45 @@
         duration: 0.55, ease: "power2.out",
       }, 0.5);
 
-      // ─── SCENE 2 — Menu demo (crossfade in covers scene 1) ───
-      tl.set("#scene-2", { opacity: 0 }, 0);
+      // ─── SCENE 2 — Menu + flyout + safe zone (crossfade in over scene 1) ───
       tl.to("#scene-2", {
         opacity: 1,
         duration: 0.35, ease: "power2.inOut",
-      }, 2.6);
+      }, 2.3);
 
-      tl.from("#scene-2 .menu-caption", {
+      tl.from("#caption-a", {
         y: -30, opacity: 0,
         duration: 0.5, ease: "power2.out",
-      }, 2.8);
+      }, 2.5);
       tl.from("#scene-2 .menu", {
         scale: 0.94, opacity: 0,
         duration: 0.55, ease: "expo.out",
-      }, 2.95);
-      tl.from("#scene-2 .cursor", {
+      }, 2.65);
+      tl.from("#cursor", {
         opacity: 0, scale: 0,
         duration: 0.4, ease: "back.out(1.8)",
-      }, 3.3);
+      }, 3.0);
 
-      // ── Fisheye expansion cycle ──
-      // Baseline: 6 items × 72px = 432px menu height.
-      // State B (cursor at item 3 "Insert"):
-      //   heights [56, 88, 108, 144, 108, 88] = 592px
-      // State C (cursor at item 1 "Edit"):
-      //   heights [108, 144, 108, 88, 72, 56] = 576px
+      // ── Fisheye expansion: cursor walks down to Insert (item 3) ──
+      // Baseline: 6 items × 72px = 432px menu height, padding 24 → 456.
+      // State B (cursor at Insert / item 3):
+      //   heights [56, 88, 108, 144, 108, 88] — Insert at 144, neighbors compressed.
+      //
+      // Menu interior y-positions in State B (from menu top-edge, padding=12):
+      //   item 0: 12-68,  item 1: 68-156,  item 2: 156-264,
+      //   item 3: 264-408, item 4: 408-516, item 5: 516-604
+      //
+      // Menu is positioned at left=180, top=40 in stage. So in stage coords:
+      //   item-3 spans y=304-448, center y=376.
+      //   Insert's right edge (where cursor sits to activate): x = 180+440 = 620.
 
-      tl.to("#cursor", { y: 260, duration: 0.85, ease: "power2.inOut" }, 3.5);
+      // Cursor lives CSS-anchored at (650, 40). GSAP x/y are deltas from there.
+      // Descent to Insert: cursor tip should land ~ (400, 376) — on the Insert item
+      // Element offset from tip (tip at 3,3 in 40px element) = (element.left = tip-3, element.top = tip-3)
+      // Target element = (397, 373). Delta from CSS (650, 40) = (-253, 333).
+      tl.to("#cursor", { x: -253, y: 333, duration: 1.0, ease: "power2.inOut" }, 3.2);
 
+      // Fisheye expand to STATE B
       const stateB = [56, 88, 108, 144, 108, 88];
       stateB.forEach((h, i) => {
         tl.to("#item-" + i, {
@@ -247,53 +355,95 @@
           backgroundColor: i === 3 ? "#533483" : "#16213e",
           color: i === 3 ? "#ffffff" : "#c0c0c0",
           duration: 0.4, ease: "power2.out",
-        }, 3.75);
+        }, 3.6);
       });
 
-      tl.to("#cursor", { y: 90, duration: 0.75, ease: "power2.inOut" }, 4.85);
+      // ── Flyout opens ──
+      // Insert top in stage coords: y=304. Flyout top aligns at y=232 (actually anchored
+      // near Insert's top; CSS puts flyout at top=232 — matches roughly). Flyout slides
+      // in from the left (scale X + fade).
+      tl.fromTo("#flyout",
+        { opacity: 0, scaleX: 0.85, transformOrigin: "left center" },
+        { opacity: 1, scaleX: 1, duration: 0.45, ease: "power3.out" },
+        4.5
+      );
 
-      const stateC = [108, 144, 108, 88, 72, 56];
-      stateC.forEach((h, i) => {
-        tl.to("#item-" + i, {
-          height: h,
-          backgroundColor: i === 1 ? "#533483" : "#16213e",
-          color: i === 1 ? "#ffffff" : "#c0c0c0",
-          duration: 0.4, ease: "power2.out",
-        }, 5.1);
-      });
+      // ── Caption crossfade: A → B ──
+      tl.to("#caption-a", {
+        opacity: 0, y: -18,
+        duration: 0.35, ease: "power2.in",
+      }, 5.0);
+      tl.fromTo("#caption-b",
+        { opacity: 0, y: 22 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" },
+        5.25
+      );
 
-      tl.to("#cursor", { x: 140, opacity: 0, duration: 0.55, ease: "power2.in" }, 6.25);
+      // ── Safe-zone triangle appears ──
+      // Triangle anchored at cursor tip (400, 376) and flyout left edge.
+      // Updated polygon points in SVG below: "400,376 628,232 628,442"
+      tl.fromTo("#safe-zone",
+        { opacity: 0, scale: 0.92, transformOrigin: "50% 50%" },
+        { opacity: 1, scale: 1, duration: 0.55, ease: "power3.out" },
+        5.8
+      );
 
-      [72, 72, 72, 72, 72, 72].forEach((h, i) => {
-        tl.to("#item-" + i, {
-          height: h,
-          backgroundColor: "#16213e",
-          color: "#c0c0c0",
-          duration: 0.45, ease: "power2.out",
-        }, 6.5);
-      });
+      // ── Beat — let the viewer see the zone ──
+      // (no animation 6.35 → 7.0)
 
-      // ─── SCENE 3 — CTA (crossfade in covers scene 2) ───
-      tl.set("#scene-3", { opacity: 0 }, 0);
+      // ── Diagonal travel: cursor moves down-right, through the safe zone ──
+      // From cursor position (480, 376) to flyout item 2 "Link" center (778, 316+12+2*56+28=368)
+      // Actually flyout item centers (y):
+      //   fly-0: 232 + 12 + 28 = 272
+      //   fly-1: 232 + 12 + 56 + 28 = 328
+      //   fly-2: 232 + 12 + 112 + 28 = 384
+      //   fly-3: 232 + 12 + 168 + 28 = 440
+      // Flyout item centers (x): 628 + 150 = 778
+
+      // Diagonal to "Table" (fly-1) center (778, 328) — inside the safe-zone triangle.
+      // Cursor tip target: (778, 328). Element offset (-3, -3) → (775, 325).
+      // Delta from CSS (650, 40) = (125, 285).
+      tl.to("#cursor", {
+        x: 125, y: 285,
+        duration: 1.6, ease: "power2.inOut",
+      }, 7.0);
+
+      // Highlight "Table" in flyout
+      tl.to("#fly-1", {
+        backgroundColor: "#533483",
+        color: "#ffffff",
+        duration: 0.35, ease: "power2.out",
+      }, 8.2);
+
+      // ── Safe zone fades slightly as user "arrives" ──
+      tl.to("#safe-zone", {
+        opacity: 0.4,
+        duration: 0.4, ease: "power2.out",
+      }, 8.2);
+
+      // Hold final state (cursor on Table, flyout open, Format/Help un-switched)
+      // 8.6 → 12.3 — ~3.7s of holdtime minus scene-3 fade-in overlap
+
+      // ─── SCENE 3 — CTA (crossfade over scene 2) ───
       tl.to("#scene-3", {
         opacity: 1,
         duration: 0.35, ease: "power2.inOut",
-      }, 7.4);
+      }, 12.3);
 
       tl.from("#scene-3 .cta-url", {
         y: 50, opacity: 0,
-        duration: 0.65, ease: "power3.out",
-      }, 7.6);
+        duration: 0.6, ease: "power3.out",
+      }, 12.5);
       tl.from("#scene-3 .cta-github", {
-        y: 30, opacity: 0,
+        y: 28, opacity: 0,
         duration: 0.5, ease: "power2.out",
-      }, 7.9);
+      }, 12.8);
 
       // Final fade — only the last scene may have exit animations
       tl.to("#scene-3", {
         opacity: 0,
         duration: 0.4, ease: "power2.in",
-      }, 9.55);
+      }, 14.05);
 
       window.__timelines["main"] = tl;
     </script>
