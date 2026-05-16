@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="../../logo.svg">
+<title>Fisheye Flyout Menu — 148-Palette Picker Demo</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:       #1a1a2e;
+    --fg:       #e0e0e0;
+    --muted:    #8b8a9a;
+    --accent:   #ff9595;
+    --fui-line: rgba(255, 149, 149, 0.32);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .info { max-width: 720px; }
+  .info h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+  .info p  { line-height: 1.6; color: #b2b2c2; margin-bottom: 12px; }
+  .info code {
+    background: #16213e;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .info a { color: var(--accent); }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .swatch-large {
+    width: 360px;
+    height: 90px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  .stage-text { display: flex; flex-direction: column; gap: 6px; }
+  .stage-text .selected-name {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--fg);
+  }
+  .stage-text .selected-count {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  button.picker {
+    appearance: none;
+    background: rgba(255, 149, 149, 0.08);
+    color: var(--accent);
+    border: 1px solid var(--fui-line);
+    border-radius: 3px;
+    padding: 10px 18px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    transition: background 120ms;
+  }
+  button.picker:hover { background: rgba(255, 149, 149, 0.18); }
+
+  /* Fisheye palette menu. Floor-guaranteed item height (4 px) so distant
+     items stay clickable even at maximum compression — the dissertation
+     rule. Gaussian lens centred on the pointer expands items near it
+     to readable size. List height is pinned to budget so cursor-y and
+     the precomputed focus map share a coordinate system. */
+  #fisheye-menu {
+    position: fixed; z-index: 20;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 1px, rgba(255, 255, 255, 0.020) 1px 2px),
+      linear-gradient(to bottom, rgba(20, 20, 36, 0.96), rgba(14, 14, 26, 0.96));
+    border: 1px solid var(--fui-line);
+    border-radius: 2px;
+    box-shadow:
+      0 0 28px rgba(255, 149, 149, 0.18),
+      0 0 64px rgba(255, 149, 149, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    font: 11px/1.4 ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+    width: 280px;
+    max-height: 92vh;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    pointer-events: auto;
+    display: flex; flex-direction: column;
+  }
+  #fisheye-menu .cb { filter: drop-shadow(0 0 3px rgba(255, 149, 149, 0.7)); }
+  #fisheye-menu .cb { position: absolute; width: 8px; height: 8px; pointer-events: none; }
+  #fisheye-menu .cb.tl { top: -1px;    left: -1px;    border-top: 1px solid var(--accent); border-left:  1px solid var(--accent); }
+  #fisheye-menu .cb.tr { top: -1px;    right: -1px;   border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+  #fisheye-menu .cb.bl { bottom: -1px; left: -1px;    border-bottom: 1px solid var(--accent); border-left:  1px solid var(--accent); }
+  #fisheye-menu .cb.br { bottom: -1px; right: -1px;   border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+  #fisheye-menu .fm-head {
+    padding: 6px 10px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--fui-line);
+    flex: 0 0 auto;
+  }
+  #fisheye-menu .fm-list {
+    overflow: hidden;
+  }
+  #fisheye-menu .fm-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 8px;
+    color: rgba(224, 224, 224, 0.45);
+    cursor: pointer;
+    overflow: hidden;
+    transition: background 80ms;
+    box-sizing: border-box;
+  }
+  #fisheye-menu .fm-item .fm-bar {
+    flex: 0 0 54px;
+    height: 80%;
+    min-height: 2px;
+    background-size: 100% 100%;
+    background-position: center;
+    border: 1px solid rgba(255, 149, 149, 0.20);
+    box-sizing: border-box;
+  }
+  #fisheye-menu .fm-item .fm-label {
+    font-size: 10px;
+    white-space: nowrap;
+    opacity: 0;
+    letter-spacing: 0.02em;
+    transition: opacity 80ms, font-size 80ms;
+  }
+  #fisheye-menu .fm-item.readable .fm-label { opacity: 1; }
+  #fisheye-menu .fm-item.focused {
+    background: rgba(255, 149, 149, 0.18);
+    color: var(--fg);
+  }
+  #fisheye-menu .fm-item.focused .fm-label {
+    color: var(--accent);
+    font-size: 11px;
+  }
+  #fisheye-menu .fm-item.current .fm-label::before {
+    content: '▸ ';
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<div class="info">
+  <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+    <img src="../../logo.svg" width="64" alt="Fisheye Flyout Menu" />
+    <div>
+      <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent);">Flat-list Demo</span>
+      <h1 style="margin: 0;">148-Palette Picker</h1>
+    </div>
+  </div>
+  <p>
+    A Furnas focus+context lens applied to a flat list of 148 hand-crafted
+    color palettes. The picker compresses the full list into a single
+    viewport-tall column: items near the pointer expand to readable size,
+    items far away compress toward a hard <strong>4&nbsp;px floor</strong>
+    so distant entries remain clickable. From Andy Edmonds' Clemson MS
+    research on dynamic target sizing in hierarchical menus.
+  </p>
+  <p>
+    Unlike the cascading-menu demo in <a href="../../index.html">index.html</a>,
+    this surface is one-dimensional — closer to the original 1986 Furnas
+    formulation than to flyout navigation. The cursor-to-focus mapping
+    uses a <code>precomputeFisheyeFocusMap()</code> table built once on
+    open, so the focused row sits directly under the pointer even at the
+    edges where Gaussian truncation would otherwise drift the alignment.
+  </p>
+</div>
+
+<div class="stage">
+  <div class="swatch-large" id="swatch-large"></div>
+  <div class="stage-text">
+    <span class="selected-count" id="selected-count"></span>
+    <span class="selected-name"  id="selected-name"></span>
+  </div>
+  <button class="picker" id="open-picker">Pick palette</button>
+</div>
+
+<script type="module">
+  import { COLOR_THEMES, PALETTE_NAMES, buildPaletteLUT } from './palettes.js';
+
+  // ---------- Demo wiring ----------
+  let paletteIdx = 0;
+  const swatchLargeEl  = document.getElementById('swatch-large');
+  const selectedNameEl = document.getElementById('selected-name');
+  const selectedCountEl = document.getElementById('selected-count');
+  selectedCountEl.textContent = `1 of ${PALETTE_NAMES.length}`;
+
+  function applyPalette(idx) {
+    paletteIdx = idx;
+    const name = PALETTE_NAMES[idx];
+    selectedNameEl.textContent = COLOR_THEMES[name]?.name || name;
+    selectedCountEl.textContent = `${idx + 1} of ${PALETTE_NAMES.length}`;
+    swatchLargeEl.style.backgroundImage = `url(${paletteGradient(name)})`;
+    swatchLargeEl.style.backgroundSize = '100% 100%';
+  }
+
+  // ---------- Palette gradient cache ----------
+  const PALETTE_PREVIEW_CACHE = new Map();
+  function paletteGradient(name) {
+    let url = PALETTE_PREVIEW_CACHE.get(name);
+    if (url) return url;
+    try {
+      const lut = buildPaletteLUT(name);  // Uint8Array, 256 × 4 RGBA
+      const c = document.createElement('canvas');
+      c.width = 256; c.height = 1;
+      const ctx = c.getContext('2d');
+      const img = ctx.createImageData(256, 1);
+      img.data.set(lut);
+      ctx.putImageData(img, 0, 0);
+      url = c.toDataURL('image/png');
+    } catch (e) { url = ''; }
+    PALETTE_PREVIEW_CACHE.set(name, url);
+    return url;
+  }
+
+  // ---------- Fisheye palette menu ----------
+  // Furnas focus+context lens. PALETTE_NAMES.length palettes compressed
+  // into a fixed-height viewport; pointer position selects the focal
+  // item, items near it expand to readable size, items further away
+  // compress toward a hard floor (4 px) so distant entries remain
+  // clickable — the floor-guarantee rule from Andy's Clemson dissertation.
+
+  let fisheyeEl = null;
+  let fisheyeItems = null;
+
+  // 1.5× lens: peak 33 px, floor 4 px (guaranteed clickable), σ 6 items
+  // so more entries in the in-range zone enlarge meaningfully.
+  const FISHEYE_MIN_H  = 4;
+  const FISHEYE_MAX_H  = 33;
+  const FISHEYE_SPREAD = 6;
+
+  function fisheyeBudget() {
+    return (fisheyeEl && fisheyeEl._budget) || Math.min(window.innerHeight * 0.88, 880);
+  }
+
+  function applyFisheye(focusIdx) {
+    if (!fisheyeItems) return;
+    const N = fisheyeItems.length;
+    const budget = fisheyeBudget();
+    const heights = new Array(N);
+    let total = 0;
+    for (let i = 0; i < N; i++) {
+      const d = i - focusIdx;
+      const w = Math.exp(-(d * d) / (2 * FISHEYE_SPREAD * FISHEYE_SPREAD));
+      heights[i] = FISHEYE_MIN_H + (FISHEYE_MAX_H - FISHEYE_MIN_H) * w;
+      total += heights[i];
+    }
+    const scale = total > budget ? budget / total : 1;
+    for (let i = 0; i < N; i++) {
+      const h = heights[i] * scale;
+      const item = fisheyeItems[i];
+      item.style.height = h + 'px';
+      item.classList.toggle('focused', i === focusIdx);
+      item.classList.toggle('readable', h >= 12);
+    }
+  }
+
+  // Steady-state center-y of item k in the layout where focus=k. Built once
+  // per open so the cursor→focus mapping matches what applyFisheye actually
+  // renders. Without this, a linear cursor-y→index mapping drifts ~60 px
+  // from the focused row near the edges (Gaussian truncation pushes the
+  // focused row's pixel position off the linear ideal).
+  function precomputeFisheyeFocusMap() {
+    const N = fisheyeItems.length;
+    const budget = fisheyeBudget();
+    const peakW = 1;
+    const map = new Array(N);
+    for (let k = 0; k < N; k++) {
+      let total = 0, cumBeforeK = 0;
+      for (let i = 0; i < N; i++) {
+        const d = i - k;
+        const w = Math.exp(-(d * d) / (2 * FISHEYE_SPREAD * FISHEYE_SPREAD));
+        const h = FISHEYE_MIN_H + (FISHEYE_MAX_H - FISHEYE_MIN_H) * w;
+        total += h;
+        if (i < k) cumBeforeK += h;
+      }
+      const scale = total > budget ? budget / total : 1;
+      const hK = (FISHEYE_MIN_H + (FISHEYE_MAX_H - FISHEYE_MIN_H) * peakW) * scale;
+      // Center of focused row, not its top edge — pointer lands mid-row.
+      map[k] = cumBeforeK * scale + hK * 0.5;
+    }
+    return map;
+  }
+
+  function fisheyeIndexFromY(y) {
+    const map = fisheyeEl && fisheyeEl._focusMap;
+    if (!map || !map.length) return 0;
+    let lo = 0, hi = map.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi) >> 1;
+      if (map[mid] < y) lo = mid + 1;
+      else hi = mid;
+    }
+    if (lo > 0 && Math.abs(map[lo - 1] - y) < Math.abs(map[lo] - y)) return lo - 1;
+    return lo;
+  }
+
+  function openFisheyeMenu(triggerEl) {
+    if (fisheyeEl) return;
+    fisheyeEl = document.createElement('div');
+    fisheyeEl.id = 'fisheye-menu';
+    fisheyeEl.innerHTML = `
+      <div class="cb tl"></div><div class="cb tr"></div>
+      <div class="cb bl"></div><div class="cb br"></div>
+      <div class="fm-head">Palette · ${PALETTE_NAMES.length}</div>
+      <div class="fm-list"></div>
+    `;
+    const list = fisheyeEl.querySelector('.fm-list');
+    fisheyeItems = PALETTE_NAMES.map((name, i) => {
+      const item = document.createElement('div');
+      item.className = 'fm-item';
+      if (i === paletteIdx) item.classList.add('current');
+      item.dataset.index = i;
+      const grad = paletteGradient(name);
+      item.innerHTML = `
+        <span class="fm-bar" style="background-image: url(${grad})"></span>
+        <span class="fm-label">${COLOR_THEMES[name]?.name || name}</span>
+      `;
+      list.appendChild(item);
+      return item;
+    });
+    document.body.appendChild(fisheyeEl);
+
+    // Compute the list-height budget from actual viewport space, leaving
+    // room for the head bar and a small margin top/bottom. Stashed on the
+    // menu element so applyFisheye can read it. Caps at 880 px so the
+    // peak-item proportions stay sensible on large displays.
+    const MARGIN = 8;
+    const headH  = fisheyeEl.querySelector('.fm-head').getBoundingClientRect().height || 32;
+    const availH = window.innerHeight - 2 * MARGIN - headH - 4;
+    fisheyeEl._budget = Math.max(160, Math.min(880, availH));
+    // Pin list height to the items' total so cursor-y and the focus map
+    // share a coordinate system. Without this, flex grow can stretch
+    // .fm-list past the items' summed height, leaving empty space below
+    // the last row and a cursor→focus mismatch that grows linearly with
+    // distance from the top (worse on taller viewports).
+    list.style.flex = '0 0 auto';
+    list.style.height = fisheyeEl._budget + 'px';
+    fisheyeEl._focusMap = precomputeFisheyeFocusMap();
+
+    applyFisheye(paletteIdx);
+
+    // Position next to the trigger but clamp so the whole menu stays in
+    // the viewport.
+    const tRect = triggerEl.getBoundingClientRect();
+    const totalH = headH + fisheyeEl._budget + 4;
+    const maxTop = window.innerHeight - totalH - MARGIN;
+    const desiredTop = tRect.top - 18;
+    fisheyeEl.style.top  = Math.max(MARGIN, Math.min(desiredTop, maxTop)) + 'px';
+    fisheyeEl.style.left = (tRect.right + 12) + 'px';
+    const mRect = fisheyeEl.getBoundingClientRect();
+    if (mRect.right > window.innerWidth - 8) {
+      fisheyeEl.style.left = Math.max(8, tRect.left - mRect.width - 12) + 'px';
+    }
+
+    // Cursor → focus via precomputed visual-y map. Stable (the table is
+    // fixed for the open session) and aligned (the focused row sits under
+    // the pointer instead of drifting at the edges).
+    list.addEventListener('pointermove', (e) => {
+      const lRect = list.getBoundingClientRect();
+      const y = Math.max(0, e.clientY - lRect.top);
+      applyFisheye(fisheyeIndexFromY(y));
+    });
+    fisheyeEl.addEventListener('click', (e) => {
+      const item = e.target.closest('.fm-item');
+      if (!item) return;
+      const idx = Number(item.dataset.index);
+      if (Number.isFinite(idx)) applyPalette(idx);
+      closeFisheyeMenu();
+    });
+    setTimeout(() => document.addEventListener('pointerdown', fisheyeOutside), 0);
+    document.addEventListener('keydown', fisheyeKey);
+  }
+
+  function fisheyeOutside(e) {
+    if (fisheyeEl && !fisheyeEl.contains(e.target)) closeFisheyeMenu();
+  }
+  function fisheyeKey(e) {
+    if (e.key === 'Escape') closeFisheyeMenu();
+  }
+
+  function closeFisheyeMenu() {
+    if (!fisheyeEl) return;
+    fisheyeEl._focusMap = null;
+    fisheyeEl.remove();
+    fisheyeEl = null;
+    fisheyeItems = null;
+    document.removeEventListener('pointerdown', fisheyeOutside);
+    document.removeEventListener('keydown', fisheyeKey);
+  }
+
+  document.getElementById('open-picker').addEventListener('click', (e) => {
+    openFisheyeMenu(e.currentTarget);
+  });
+
+  applyPalette(0);
+</script>
+
+</body>
+</html>

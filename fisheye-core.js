@@ -119,6 +119,16 @@ export function cumulativeBoundaries(heights) {
 
 /**
  * Which item index is at mouseY (relative to panel top)?
+ *
+ * Walks the cumulative-y of the *current* heights array — caller must
+ * pass the heights that match what's currently rendered. For panels
+ * where heights are reshaped on every mousemove (the cascading-menu
+ * case), this works because heights and rendered DOM stay in sync.
+ *
+ * For long flat lists (e.g., the 148-palette picker in demos/palette/)
+ * where re-running this per mousemove would be O(N), precompute a
+ * focus-center map once on open and binary-search it instead — see
+ * demos/palette/index.html for the pattern.
  */
 export function itemIndexAtY(mouseY, heights) {
   let cumY = 0;
