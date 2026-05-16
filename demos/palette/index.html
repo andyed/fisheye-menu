@@ -255,10 +255,12 @@
   let fisheyeEl = null;
   let fisheyeItems = null;
 
-  // 1.5× lens: peak 33 px, floor 4 px (guaranteed clickable), σ 6 items
-  // so more entries in the in-range zone enlarge meaningfully.
+  // Generous lens: peak 64 px, floor 4 px (guaranteed clickable), σ 6 items.
+  // Larger peak gives each row more cursor "real estate" near the focus —
+  // halves the row-overshoot risk on fast trackpad flicks (each row near
+  // center now spans ~38 px after budget scaling, up from ~28 px).
   const FISHEYE_MIN_H  = 4;
-  const FISHEYE_MAX_H  = 33;
+  const FISHEYE_MAX_H  = 64;
   const FISHEYE_SPREAD = 6;
 
   function fisheyeBudget() {
