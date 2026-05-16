@@ -127,17 +127,25 @@
   }
   #fisheye-menu .fm-list {
     overflow: hidden;
+    flex: 0 0 auto;
   }
+  /* Gaussian-distributed item heights, baked once at open. Items lay
+     out in normal document flow so ~12 visible zoom levels in the
+     lens zone (each row's height a function of its distance from the
+     lens centre, the user's current palette). The cursor only updates
+     which row carries .focused — layout never reshuffles, no
+     cheese-moving on pointer motion. */
   #fisheye-menu .fm-item {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 0 8px;
-    color: rgba(224, 224, 224, 0.45);
+    height: var(--visual-h, 6px);
+    color: rgba(224, 224, 224, 0.55);
     cursor: pointer;
     overflow: hidden;
-    transition: background 80ms;
     box-sizing: border-box;
+    transition: background 60ms linear;
   }
   #fisheye-menu .fm-item .fm-bar {
     flex: 0 0 54px;
@@ -147,22 +155,29 @@
     background-position: center;
     border: 1px solid rgba(255, 149, 149, 0.20);
     box-sizing: border-box;
+    transition: border-color 100ms, box-shadow 100ms;
   }
   #fisheye-menu .fm-item .fm-label {
-    font-size: 10px;
+    font-size: var(--label-size, 4px);
+    opacity: var(--label-opacity, 0);
     white-space: nowrap;
-    opacity: 0;
     letter-spacing: 0.02em;
-    transition: opacity 80ms, font-size 80ms;
+    transition: opacity 100ms, font-size 100ms;
   }
-  #fisheye-menu .fm-item.readable .fm-label { opacity: 1; }
+  /* Focus signal: high-opacity accent fill across the whole row + a
+     bright bar border + accent label colour. The bar glow alone is
+     clipped by .fm-item's overflow:hidden — especially on floor rows
+     where the bar is a couple pixels tall — so the row tint is the
+     primary cue. Cranked to 0.55 alpha so it can't be missed even on
+     thin rows. */
   #fisheye-menu .fm-item.focused {
-    background: rgba(255, 149, 149, 0.18);
-    color: var(--fg);
+    background: rgba(255, 149, 149, 0.55);
+  }
+  #fisheye-menu .fm-item.focused .fm-bar {
+    border-color: var(--accent);
   }
   #fisheye-menu .fm-item.focused .fm-label {
-    color: var(--accent);
-    font-size: 11px;
+    color: #fff;
   }
   #fisheye-menu .fm-item.current .fm-label::before {
     content: '▸ ';
@@ -209,6 +224,13 @@
 
 <script type="module">
   import { COLOR_THEMES, PALETTE_NAMES, buildPaletteLUT } from './palettes.js';
+  import {
+    bakeHeights,
+    bakeCenters,
+    rowFromY,
+    precomputeFocusCenters,
+    DEFAULT_LENS_CONFIG,
+  } from '../../baked-lens.js';
 
   // ---------- Demo wiring ----------
   let paletteIdx = 0;
@@ -255,78 +277,45 @@
   let fisheyeEl = null;
   let fisheyeItems = null;
 
-  // Generous lens: peak 64 px, floor 4 px (guaranteed clickable), σ 6 items.
-  // Larger peak gives each row more cursor "real estate" near the focus —
-  // halves the row-overshoot risk on fast trackpad flicks (each row near
-  // center now spans ~38 px after budget scaling, up from ~28 px).
-  const FISHEYE_MIN_H  = 4;
-  const FISHEYE_MAX_H  = 64;
-  const FISHEYE_SPREAD = 6;
+  // Lens math lives in ../../baked-lens.js (pure functions, vitest-covered).
+  // The demo is the canonical consumer of that module — anything tested in
+  // tests/baked-lens.test.js is exactly what this picker uses at runtime.
+  const LENS_CONFIG = DEFAULT_LENS_CONFIG;
 
   function fisheyeBudget() {
     return (fisheyeEl && fisheyeEl._budget) || Math.min(window.innerHeight * 0.88, 880);
   }
 
-  function applyFisheye(focusIdx) {
+  // Bake the lens once: apply Gaussian-distributed heights to each item
+  // via --visual-h and label CSS vars, then stash cumulative centers for
+  // the cursor → row lookup. Layout is frozen from here on.
+  function bakeLens(centerRow) {
     if (!fisheyeItems) return;
     const N = fisheyeItems.length;
     const budget = fisheyeBudget();
-    const heights = new Array(N);
-    let total = 0;
+    const heights = bakeHeights(N, centerRow, budget, LENS_CONFIG);
+    const centers = bakeCenters(heights);
+    const twoSigmaSq = 2 * LENS_CONFIG.sigma * LENS_CONFIG.sigma;
     for (let i = 0; i < N; i++) {
-      const d = i - focusIdx;
-      const w = Math.exp(-(d * d) / (2 * FISHEYE_SPREAD * FISHEYE_SPREAD));
-      heights[i] = FISHEYE_MIN_H + (FISHEYE_MAX_H - FISHEYE_MIN_H) * w;
-      total += heights[i];
-    }
-    const scale = total > budget ? budget / total : 1;
-    for (let i = 0; i < N; i++) {
-      const h = heights[i] * scale;
       const item = fisheyeItems[i];
-      item.style.height = h + 'px';
-      item.classList.toggle('focused', i === focusIdx);
-      item.classList.toggle('readable', h >= 12);
+      item.style.setProperty('--visual-h', heights[i].toFixed(2) + 'px');
+      // Label visibility ramps with the same Gaussian — most visible
+      // near the lens centre, fading toward the floor.
+      const w = Math.exp(-((i - centerRow) ** 2) / twoSigmaSq);
+      item.style.setProperty('--label-opacity', Math.max(0, (w - 0.10) / 0.90).toFixed(3));
+      item.style.setProperty('--label-size',    (6 + 12 * w).toFixed(2) + 'px');
+    }
+    if (fisheyeEl) {
+      fisheyeEl._centers = centers;
+      fisheyeEl._listH = centers.length ? centers[centers.length - 1] + heights[N - 1] / 2 : 0;
     }
   }
 
-  // Steady-state center-y of item k in the layout where focus=k. Built once
-  // per open so the cursor→focus mapping matches what applyFisheye actually
-  // renders. Without this, a linear cursor-y→index mapping drifts ~60 px
-  // from the focused row near the edges (Gaussian truncation pushes the
-  // focused row's pixel position off the linear ideal).
-  function precomputeFisheyeFocusMap() {
-    const N = fisheyeItems.length;
-    const budget = fisheyeBudget();
-    const peakW = 1;
-    const map = new Array(N);
-    for (let k = 0; k < N; k++) {
-      let total = 0, cumBeforeK = 0;
-      for (let i = 0; i < N; i++) {
-        const d = i - k;
-        const w = Math.exp(-(d * d) / (2 * FISHEYE_SPREAD * FISHEYE_SPREAD));
-        const h = FISHEYE_MIN_H + (FISHEYE_MAX_H - FISHEYE_MIN_H) * w;
-        total += h;
-        if (i < k) cumBeforeK += h;
-      }
-      const scale = total > budget ? budget / total : 1;
-      const hK = (FISHEYE_MIN_H + (FISHEYE_MAX_H - FISHEYE_MIN_H) * peakW) * scale;
-      // Center of focused row, not its top edge — pointer lands mid-row.
-      map[k] = cumBeforeK * scale + hK * 0.5;
+  function setFocusedRow(idx) {
+    if (!fisheyeItems) return;
+    for (let i = 0; i < fisheyeItems.length; i++) {
+      fisheyeItems[i].classList.toggle('focused', i === idx);
     }
-    return map;
-  }
-
-  function fisheyeIndexFromY(y) {
-    const map = fisheyeEl && fisheyeEl._focusMap;
-    if (!map || !map.length) return 0;
-    let lo = 0, hi = map.length - 1;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (map[mid] < y) lo = mid + 1;
-      else hi = mid;
-    }
-    if (lo > 0 && Math.abs(map[lo - 1] - y) < Math.abs(map[lo] - y)) return lo - 1;
-    return lo;
   }
 
   function openFisheyeMenu(triggerEl) {
@@ -346,33 +335,31 @@
       if (i === paletteIdx) item.classList.add('current');
       item.dataset.index = i;
       const grad = paletteGradient(name);
-      item.innerHTML = `
-        <span class="fm-bar" style="background-image: url(${grad})"></span>
-        <span class="fm-label">${COLOR_THEMES[name]?.name || name}</span>
-      `;
+      item.innerHTML =
+        `<span class="fm-bar" style="background-image: url(${grad})"></span>` +
+        `<span class="fm-label">${COLOR_THEMES[name]?.name || name}</span>`;
       list.appendChild(item);
       return item;
     });
     document.body.appendChild(fisheyeEl);
 
-    // Compute the list-height budget from actual viewport space, leaving
-    // room for the head bar and a small margin top/bottom. Stashed on the
-    // menu element so applyFisheye can read it. Caps at 880 px so the
-    // peak-item proportions stay sensible on large displays.
+    // Viewport-fit the menu height first (head + budget for the list).
     const MARGIN = 8;
     const headH  = fisheyeEl.querySelector('.fm-head').getBoundingClientRect().height || 32;
     const availH = window.innerHeight - 2 * MARGIN - headH - 4;
     fisheyeEl._budget = Math.max(160, Math.min(880, availH));
-    // Pin list height to the items' total so cursor-y and the focus map
-    // share a coordinate system. Without this, flex grow can stretch
-    // .fm-list past the items' summed height, leaving empty space below
-    // the last row and a cursor→focus mismatch that grows linearly with
-    // distance from the top (worse on taller viewports).
-    list.style.flex = '0 0 auto';
-    list.style.height = fisheyeEl._budget + 'px';
-    fisheyeEl._focusMap = precomputeFisheyeFocusMap();
 
-    applyFisheye(paletteIdx);
+    // Bake the initial lens around the current palette and remember its
+    // focal — that's the centre of the "stable pocket" the cursor can
+    // wander within without forcing a re-bake. Within ±sigma rows of
+    // _lastBakedFocus, targets stay put; only beyond that does the
+    // lens jump to follow the cursor (sufficient catch-up, not
+    // continuous chase). _listH is invariant under re-bake (raw sum
+    // scales to fit budget regardless of focal), so the list height
+    // set here holds for the menu's lifetime.
+    bakeLens(paletteIdx);
+    fisheyeEl._lastBakedFocus = paletteIdx;
+    list.style.height = (fisheyeEl._listH || 0).toFixed(2) + 'px';
 
     // Position next to the trigger but clamp so the whole menu stays in
     // the viewport.
@@ -387,19 +374,30 @@
       fisheyeEl.style.left = Math.max(8, tRect.left - mRect.width - 12) + 'px';
     }
 
-    // Cursor → focus via precomputed visual-y map. Stable (the table is
-    // fixed for the open session) and aligned (the focused row sits under
-    // the pointer instead of drifting at the edges).
+    // Cursor → row reads the CURRENT layout's centers (_centers, updated
+    // by bakeLens). Within the stable pocket (cursor within ±sigma of
+    // _lastBakedFocus) the layout stays put, so cursor → row is invariant
+    // and the row you visually targeted is the row you'll land on. Only
+    // when the cursor breaches the pocket do we re-bake — a discrete
+    // catch-up to the cursor, not a continuous chase. The pocket radius
+    // matches sigma so a user can hop 2-3 rows from focal without
+    // triggering a shift.
+    const STABLE_DIST = Math.ceil(LENS_CONFIG.sigma);
     list.addEventListener('pointermove', (e) => {
       const lRect = list.getBoundingClientRect();
       const y = Math.max(0, e.clientY - lRect.top);
-      applyFisheye(fisheyeIndexFromY(y));
+      const k = rowFromY(y, fisheyeEl._centers);
+      if (Math.abs(k - fisheyeEl._lastBakedFocus) > STABLE_DIST) {
+        bakeLens(k);
+        fisheyeEl._lastBakedFocus = k;
+      }
+      setFocusedRow(k);
     });
-    fisheyeEl.addEventListener('click', (e) => {
-      const item = e.target.closest('.fm-item');
-      if (!item) return;
-      const idx = Number(item.dataset.index);
-      if (Number.isFinite(idx)) applyPalette(idx);
+    list.addEventListener('click', (e) => {
+      const lRect = list.getBoundingClientRect();
+      const y = e.clientY - lRect.top;
+      if (y < 0 || y > lRect.height) return;
+      applyPalette(rowFromY(y, fisheyeEl._centers));
       closeFisheyeMenu();
     });
     setTimeout(() => document.addEventListener('pointerdown', fisheyeOutside), 0);
