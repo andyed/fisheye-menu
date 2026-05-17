@@ -228,7 +228,9 @@
     bakeHeights,
     bakeCenters,
     rowFromY,
+    fractionalRowFromY,
     precomputeFocusCenters,
+    lensWeightFn,
     DEFAULT_LENS_CONFIG,
   } from '../../baked-lens.js';
 
@@ -295,13 +297,14 @@
     const budget = fisheyeBudget();
     const heights = bakeHeights(N, centerRow, budget, LENS_CONFIG);
     const centers = bakeCenters(heights);
-    const twoSigmaSq = 2 * LENS_CONFIG.sigma * LENS_CONFIG.sigma;
+    // Same lens-weight function used for heights drives label rendering
+    // — keeps the visual gradient and the label-readability gradient
+    // in sync.
+    const weight = lensWeightFn(LENS_CONFIG.shape, LENS_CONFIG.sigma);
     for (let i = 0; i < N; i++) {
       const item = fisheyeItems[i];
       item.style.setProperty('--visual-h', heights[i].toFixed(2) + 'px');
-      // Label visibility ramps with the same Gaussian — most visible
-      // near the lens centre, fading toward the floor.
-      const w = Math.exp(-((i - centerRow) ** 2) / twoSigmaSq);
+      const w = weight(Math.abs(i - centerRow));
       item.style.setProperty('--label-opacity', Math.max(0, (w - 0.10) / 0.90).toFixed(3));
       item.style.setProperty('--label-size',    (6 + 12 * w).toFixed(2) + 'px');
     }
@@ -349,16 +352,12 @@
     const availH = window.innerHeight - 2 * MARGIN - headH - 4;
     fisheyeEl._budget = Math.max(160, Math.min(880, availH));
 
-    // Bake the initial lens around the current palette and remember its
-    // focal — that's the centre of the "stable pocket" the cursor can
-    // wander within without forcing a re-bake. Within ±sigma rows of
-    // _lastBakedFocus, targets stay put; only beyond that does the
-    // lens jump to follow the cursor (sufficient catch-up, not
-    // continuous chase). _listH is invariant under re-bake (raw sum
-    // scales to fit budget regardless of focal), so the list height
-    // set here holds for the menu's lifetime.
+    // Precompute the stable focus map (where row k would be if it were
+    // the focal). The map is invariant for the menu's lifetime — we
+    // use it for cursor → fractional-row lookup so the visual lens
+    // can interpolate smoothly between integer focals.
+    fisheyeEl._focusMap = precomputeFocusCenters(PALETTE_NAMES.length, fisheyeEl._budget, LENS_CONFIG);
     bakeLens(paletteIdx);
-    fisheyeEl._lastBakedFocus = paletteIdx;
     list.style.height = (fisheyeEl._listH || 0).toFixed(2) + 'px';
 
     // Position next to the trigger but clamp so the whole menu stays in
@@ -374,30 +373,26 @@
       fisheyeEl.style.left = Math.max(8, tRect.left - mRect.width - 12) + 'px';
     }
 
-    // Cursor → row reads the CURRENT layout's centers (_centers, updated
-    // by bakeLens). Within the stable pocket (cursor within ±sigma of
-    // _lastBakedFocus) the layout stays put, so cursor → row is invariant
-    // and the row you visually targeted is the row you'll land on. Only
-    // when the cursor breaches the pocket do we re-bake — a discrete
-    // catch-up to the cursor, not a continuous chase. The pocket radius
-    // matches sigma so a user can hop 2-3 rows from focal without
-    // triggering a shift.
-    const STABLE_DIST = Math.ceil(LENS_CONFIG.sigma);
+    // Integer-bake model with CSS-driven smoothness: snap the bake to
+    // the closest integer focal so focused === lens focal === the
+    // biggest row, no off-by-one ambiguity at fractional midpoints.
+    // Visual smoothness comes from the CSS height transition on
+    // .fm-item (each row's --visual-h changes are animated over the
+    // transition duration, so the eye sees a smooth re-shape between
+    // discrete bake snapshots).
     list.addEventListener('pointermove', (e) => {
       const lRect = list.getBoundingClientRect();
       const y = Math.max(0, e.clientY - lRect.top);
-      const k = rowFromY(y, fisheyeEl._centers);
-      if (Math.abs(k - fisheyeEl._lastBakedFocus) > STABLE_DIST) {
-        bakeLens(k);
-        fisheyeEl._lastBakedFocus = k;
-      }
+      const k = Math.round(fractionalRowFromY(y, fisheyeEl._focusMap));
+      bakeLens(k);
       setFocusedRow(k);
     });
     list.addEventListener('click', (e) => {
       const lRect = list.getBoundingClientRect();
       const y = e.clientY - lRect.top;
       if (y < 0 || y > lRect.height) return;
-      applyPalette(rowFromY(y, fisheyeEl._centers));
+      const k = Math.round(fractionalRowFromY(y, fisheyeEl._focusMap));
+      applyPalette(k);
       closeFisheyeMenu();
     });
     setTimeout(() => document.addEventListener('pointerdown', fisheyeOutside), 0);

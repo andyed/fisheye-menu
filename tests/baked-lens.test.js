@@ -16,6 +16,7 @@ import {
   bakeHeights,
   bakeCenters,
   rowFromY,
+  fractionalRowFromY,
   precomputeFocusCenters,
   DEFAULT_LENS_CONFIG,
 } from '../baked-lens.js';
@@ -231,6 +232,58 @@ describe('precomputeFocusCenters', () => {
     bakeHeights(N, 140, BUDGET, CONFIG);
     const afterRows = samplesY.map(y => rowFromY(y, map));
     expect(afterRows).toEqual(beforeRows);
+  });
+});
+
+describe('fractionalRowFromY', () => {
+  it('integer rounding matches rowFromY', () => {
+    const map = precomputeFocusCenters(N, BUDGET, CONFIG);
+    for (const k of SAMPLE_CENTERS) {
+      const y = map[k];
+      expect(Math.round(fractionalRowFromY(y, map))).toBe(rowFromY(y, map));
+    }
+  });
+
+  it('returns k exactly when y === centers[k]', () => {
+    const map = precomputeFocusCenters(N, BUDGET, CONFIG);
+    for (const k of SAMPLE_CENTERS) {
+      expect(fractionalRowFromY(map[k], map)).toBeCloseTo(k, 9);
+    }
+  });
+
+  it('halfway between two centers returns k + 0.5', () => {
+    const centers = [10, 30, 50, 70];
+    expect(fractionalRowFromY(20, centers)).toBeCloseTo(0.5, 9);
+    expect(fractionalRowFromY(40, centers)).toBeCloseTo(1.5, 9);
+    expect(fractionalRowFromY(60, centers)).toBeCloseTo(2.5, 9);
+  });
+
+  it('strictly monotone in y', () => {
+    const map = precomputeFocusCenters(N, BUDGET, CONFIG);
+    let prev = -Infinity;
+    for (let y = 0; y < BUDGET; y += 5) {
+      const r = fractionalRowFromY(y, map);
+      expect(r, `y=${y}`).toBeGreaterThanOrEqual(prev);
+      prev = r;
+    }
+  });
+
+  it('clamps to 0 below first center, to N-1 above last', () => {
+    const map = precomputeFocusCenters(N, BUDGET, CONFIG);
+    expect(fractionalRowFromY(-100, map)).toBe(0);
+    expect(fractionalRowFromY(1e9,  map)).toBe(map.length - 1);
+  });
+
+  it('integer focal cleanly bakes; fractional focal interpolates', () => {
+    // Bake at integer focal vs interpolated halfway between focals;
+    // the halfway bake should make the two centered rows the same size.
+    const heightsK   = bakeHeights(N, 50,   BUDGET, CONFIG);
+    const heightsHalf = bakeHeights(N, 50.5, BUDGET, CONFIG);
+    // At focus=50.5 (halfway between 50 and 51): rows 50 and 51 are
+    // both at d=0.5 from focal, so their heights must be equal.
+    expect(heightsHalf[50]).toBeCloseTo(heightsHalf[51], 9);
+    // And both must be smaller than what was the focal at focus=50.
+    expect(heightsHalf[50]).toBeLessThan(heightsK[50]);
   });
 });
 

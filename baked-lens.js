@@ -22,9 +22,15 @@ export const DEFAULT_LENS_CONFIG = {
   minH:  4,     // hard floor — items at the floor still clickable
   maxH:  120,   // peak height at the lens centre — generous so focal
                 // pops AND d=2/d=3 are still comfortably clickable
-  sigma: 3,     // Gaussian σ in *item-distance* units — broad enough
-                // that 6–7 rows around focal are readable, narrow
-                // enough that the focal still dominates visually
+  shape: 'hyperbolic',
+                // Lens curve. 'hyperbolic' (1/(1+d)) gives a 2× focal-
+                // to-d=1 jump and a *decreasing* ratio further out
+                // (1.5×, 1.33×, 1.25× …) — the focal dominates but
+                // the magnified band tapers smoothly. 'gaussian'
+                // (exp(-d²/(2σ²))) has the opposite shape: gentle
+                // near the centre, steeper in the wings. Keep
+                // 'sigma' below for the Gaussian path.
+  sigma: 3,     // Only used when shape: 'gaussian'.
 };
 
 /**
@@ -41,17 +47,19 @@ export const DEFAULT_LENS_CONFIG = {
  *   - sum(heights) ≤ budget
  */
 export function bakeHeights(n, centerRow, budget, config = DEFAULT_LENS_CONFIG) {
-  const { minH, maxH, sigma } = config;
+  const { minH, maxH, shape = 'hyperbolic', sigma } = config;
   if (n <= 0) return [];
-  if (sigma <= 0) throw new Error('sigma must be > 0');
   if (budget <= 0) throw new Error('budget must be > 0');
+  if (shape === 'gaussian' && (!sigma || sigma <= 0)) {
+    throw new Error('sigma must be > 0 for gaussian shape');
+  }
 
+  const weight = lensWeightFn(shape, sigma);
   const heights = new Array(n);
   let total = 0;
-  const twoSigmaSq = 2 * sigma * sigma;
   for (let i = 0; i < n; i++) {
-    const d = i - centerRow;
-    const w = Math.exp(-(d * d) / twoSigmaSq);
+    const d = Math.abs(i - centerRow);
+    const w = weight(d);
     heights[i] = minH + (maxH - minH) * w;
     total += heights[i];
   }
@@ -60,6 +68,28 @@ export function bakeHeights(n, centerRow, budget, config = DEFAULT_LENS_CONFIG) 
     for (let i = 0; i < n; i++) heights[i] *= scale;
   }
   return heights;
+}
+
+/**
+ * Lens weight function: distance d → magnification weight in [0..1]
+ * with w(0) = 1 (focal at full magnification).
+ *
+ * - 'hyperbolic' (default): w = 1/(1+d). Ratio of adjacent magnifications
+ *   *decreases* with distance — focal is 2× d=1, d=1 is 1.5× d=2, etc.
+ *   The focal dominates visually while the band tapers smoothly.
+ *
+ * - 'gaussian': w = exp(-d²/(2σ²)). Soft top near the centre, steeper
+ *   shoulders in the wings. Focal is barely bigger than d=1, then the
+ *   gradient drops fast. Use when you want a clear "in/out of the lens"
+ *   distinction.
+ */
+export function lensWeightFn(shape = 'hyperbolic', sigma) {
+  if (shape === 'gaussian') {
+    const twoSigmaSq = 2 * sigma * sigma;
+    return (d) => Math.exp(-(d * d) / twoSigmaSq);
+  }
+  // hyperbolic
+  return (d) => 1 / (1 + d);
 }
 
 /**
@@ -124,6 +154,38 @@ export function precomputeFocusCenters(n, budget, config = DEFAULT_LENS_CONFIG) 
     out[k] = centers[k];
   }
   return out;
+}
+
+/**
+ * Like rowFromY, but returns a FRACTIONAL index — useful when the
+ * caller wants to bake the lens at an interpolated focal so the visual
+ * smoothly tracks the cursor between rows.
+ *
+ * Linearly interpolates between adjacent entries in `centers`. With
+ * `precomputeFocusCenters` as the centers array, a cursor 30 % of the
+ * way between focus=k and focus=k+1 in pixel space returns k + 0.3,
+ * which `bakeHeights` accepts directly (1/(1+d) and exp(-d²/2σ²)
+ * both work for fractional d).
+ *
+ * The integer-rounded result equals `rowFromY` on the same inputs.
+ */
+export function fractionalRowFromY(y, centers) {
+  if (!centers || !centers.length) return 0;
+  if (y <= centers[0]) return 0;
+  const last = centers.length - 1;
+  if (y >= centers[last]) return last;
+  let lo = 0, hi = last;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (centers[mid] < y) lo = mid + 1;
+    else hi = mid;
+  }
+  // lo is the first index with centers[lo] >= y; interpolate between
+  // lo-1 and lo.
+  const yLo = centers[lo - 1];
+  const yHi = centers[lo];
+  if (yHi === yLo) return lo - 1;
+  return (lo - 1) + (y - yLo) / (yHi - yLo);
 }
 
 export function rowFromY(y, centers) {
