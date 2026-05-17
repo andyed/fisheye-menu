@@ -384,39 +384,29 @@
     // viewport y to list-internal y across re-bakes.
     fisheyeEl._listNaturalTop = list.getBoundingClientRect().top;
 
-    // FOCAL-PIN model: the focal row's center is kept at the cursor's
-    // viewport y via translateY on the list. Cursor → row uses slot
-    // membership in the current bake's internal coordinates (cursor's
-    // internal y = cursorViewportY − naturalTop − currentT). When
-    // bake shifts, we recompute T so the new focal lands at cursorY
-    // — the previous slot-based-without-pin model cascaded here
-    // because the layout reshape made cursor.y point to a different
-    // row's slot in the new layout. With pin, that never happens:
-    // the focal is always at the cursor by construction.
-    function pinFocalAt(cursorY) {
-      const k = fisheyeEl._lastBakedFocus;
-      const T = cursorY - fisheyeEl._listNaturalTop - fisheyeEl._centers[k];
-      list.style.transform = `translateY(${T}px)`;
-      fisheyeEl._listT = T;
-    }
+    // Slot-based cursor → row + STABLE_DIST=1 pocket. The pocket
+    // keeps ±1 selections stable (cursor in a ±1 slot doesn't trigger
+    // a re-bake, no cascade). ±2+ jumps can still cascade for fast
+    // sweeps — the focal-pin redesign in TODO.md would eliminate
+    // that, but it traps the cursor at edges (a partial redesign
+    // landed and rolled back; see git log + TODO).
+    const STABLE_DIST = 1;
     list.addEventListener('pointermove', (e) => {
-      const cursorY = e.clientY;
-      const internalY = cursorY - fisheyeEl._listNaturalTop - fisheyeEl._listT;
-      const k = rowFromYBySlot(internalY, fisheyeEl._boundaries);
-      if (k !== fisheyeEl._lastBakedFocus) {
+      const lRect = list.getBoundingClientRect();
+      const y = Math.max(0, e.clientY - lRect.top);
+      const k = rowFromYBySlot(y, fisheyeEl._boundaries);
+      if (Math.abs(k - fisheyeEl._lastBakedFocus) > STABLE_DIST) {
         bakeLens(k);
         fisheyeEl._lastBakedFocus = k;
       }
       setFocusedRow(k);
-      pinFocalAt(cursorY);
     });
     list.addEventListener('click', (e) => {
-      const cursorY = e.clientY;
-      if (cursorY < fisheyeEl._listNaturalTop ||
-          cursorY > fisheyeEl._listNaturalTop + fisheyeEl._budget) return;
-      // The focal is always at the cursor — that's what pinning
-      // guarantees — so click commits to whatever's currently focal.
-      applyPalette(fisheyeEl._lastBakedFocus);
+      const lRect = list.getBoundingClientRect();
+      const y = e.clientY - lRect.top;
+      if (y < 0 || y > lRect.height) return;
+      const k = rowFromYBySlot(y, fisheyeEl._boundaries);
+      applyPalette(k);
       closeFisheyeMenu();
     });
     setTimeout(() => document.addEventListener('pointerdown', fisheyeOutside), 0);

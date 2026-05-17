@@ -45,23 +45,36 @@ From the references, derive:
 
 Use these to set hard bounds on the simulation's optimizer search.
 
-### Focal-pin status
+### Focal-pin status: prototyped + rolled back
 
-Landed in both the demo and spherodeli. Each pointermove computes
-`cursorInternalY = cursorViewportY − naturalTop − currentT`, slot-maps
-that to a row k, re-bakes if k changed, then sets
-`translateY = cursorY − naturalTop − centers[k]` so the new focal sits
-exactly at the cursor. Verified in preview: pin error stays under 0.2 px
-across forward and reverse cursor sweeps. No cascade — every cursor
-position maps to exactly one focal.
+Landed and verified in preview (pin error stays under 0.2 px across
+cursor sweeps, no cascade for ±N row jumps). But the cursor-trap
+edge behavior broke navigation: with `listH` scaled to fit `budget`
+exactly, the cursor's reachable focal range is constrained to roughly
+`budget / focal_h` rows around the initial bake. From paletteIdx=0
+the user couldn't navigate to higher rows without re-opening the
+menu. Rolled back to the slot+STABLE_DIST=1 model (commits available
+via git log for the focal-pin attempt).
 
-Edge behavior is currently unpolished. When the cursor lands such that
-the focal would be row 0 or row N-1, the list translates so its content
-extends past the visible viewport boundary (clipped by .fm-list's
-overflow:hidden). Rows above/below the visible band are not reachable
-without re-opening the menu at a different paletteIdx. A future
-"viewport-edge spring" or scroll-mode hand-off would let the user
-reach all 148 entries from any starting point.
+Path forward when we revisit:
+
+1. **Unscaled list with edge-clamped pin.** Stop scaling heights to
+   `budget` — let `listH` be the raw sum (≈ 1250 px for 148 items
+   at exponential alpha=0.7). `.fm-list` stays fixed at `budget`
+   height with `overflow: hidden`. The translateY pin is clamped
+   to `[budget − listH, 0]` so the list scrolls *within* that
+   range without exposing dead space outside its content.
+2. **Cursor-at-edge auto-scroll.** When cursor sits at the top or
+   bottom of the menu (or pushes against the clamp), advance the
+   list's scroll position continuously over time — covers the
+   remaining reachable distance without forcing the user to move
+   the cursor outside the menu.
+3. **Scroll-wheel hand-off.** Independent of cursor y, scroll wheel
+   nudges the focal. Lets the user reach any row from any cursor
+   position.
+
+Either way the simulation framework (above) should validate the
+trade-off before re-landing.
 
 
 
