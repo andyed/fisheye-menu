@@ -227,7 +227,9 @@
   import {
     bakeHeights,
     bakeCenters,
+    bakeBoundaries,
     rowFromY,
+    rowFromYBySlot,
     fractionalRowFromY,
     precomputeFocusCenters,
     lensWeightFn,
@@ -297,10 +299,11 @@
     const budget = fisheyeBudget();
     const heights = bakeHeights(N, centerRow, budget, LENS_CONFIG);
     const centers = bakeCenters(heights);
+    const boundaries = bakeBoundaries(heights);
     // Same lens-weight function used for heights drives label rendering
     // — keeps the visual gradient and the label-readability gradient
     // in sync.
-    const weight = lensWeightFn(LENS_CONFIG.shape, LENS_CONFIG.sigma);
+    const weight = lensWeightFn(LENS_CONFIG.shape, LENS_CONFIG.sigma, LENS_CONFIG.alpha);
     for (let i = 0; i < N; i++) {
       const item = fisheyeItems[i];
       item.style.setProperty('--visual-h', heights[i].toFixed(2) + 'px');
@@ -310,7 +313,8 @@
     }
     if (fisheyeEl) {
       fisheyeEl._centers = centers;
-      fisheyeEl._listH = centers.length ? centers[centers.length - 1] + heights[N - 1] / 2 : 0;
+      fisheyeEl._boundaries = boundaries;
+      fisheyeEl._listH = boundaries[N];
     }
   }
 
@@ -358,6 +362,8 @@
     // can interpolate smoothly between integer focals.
     fisheyeEl._focusMap = precomputeFocusCenters(PALETTE_NAMES.length, fisheyeEl._budget, LENS_CONFIG);
     bakeLens(paletteIdx);
+    fisheyeEl._lastBakedFocus = paletteIdx;
+    fisheyeEl._listT = 0;  // current translateY on the list
     list.style.height = (fisheyeEl._listH || 0).toFixed(2) + 'px';
 
     // Position next to the trigger but clamp so the whole menu stays in
@@ -372,27 +378,45 @@
     if (mRect.right > window.innerWidth - 8) {
       fisheyeEl.style.left = Math.max(8, tRect.left - mRect.width - 12) + 'px';
     }
+    // Capture the list's *natural* top in viewport space (T=0 at this
+    // point, so getBoundingClientRect().top IS the natural top).
+    // Stored so the focal-pin transform calculation can map cursor's
+    // viewport y to list-internal y across re-bakes.
+    fisheyeEl._listNaturalTop = list.getBoundingClientRect().top;
 
-    // Integer-bake model with CSS-driven smoothness: snap the bake to
-    // the closest integer focal so focused === lens focal === the
-    // biggest row, no off-by-one ambiguity at fractional midpoints.
-    // Visual smoothness comes from the CSS height transition on
-    // .fm-item (each row's --visual-h changes are animated over the
-    // transition duration, so the eye sees a smooth re-shape between
-    // discrete bake snapshots).
+    // FOCAL-PIN model: the focal row's center is kept at the cursor's
+    // viewport y via translateY on the list. Cursor → row uses slot
+    // membership in the current bake's internal coordinates (cursor's
+    // internal y = cursorViewportY − naturalTop − currentT). When
+    // bake shifts, we recompute T so the new focal lands at cursorY
+    // — the previous slot-based-without-pin model cascaded here
+    // because the layout reshape made cursor.y point to a different
+    // row's slot in the new layout. With pin, that never happens:
+    // the focal is always at the cursor by construction.
+    function pinFocalAt(cursorY) {
+      const k = fisheyeEl._lastBakedFocus;
+      const T = cursorY - fisheyeEl._listNaturalTop - fisheyeEl._centers[k];
+      list.style.transform = `translateY(${T}px)`;
+      fisheyeEl._listT = T;
+    }
     list.addEventListener('pointermove', (e) => {
-      const lRect = list.getBoundingClientRect();
-      const y = Math.max(0, e.clientY - lRect.top);
-      const k = Math.round(fractionalRowFromY(y, fisheyeEl._focusMap));
-      bakeLens(k);
+      const cursorY = e.clientY;
+      const internalY = cursorY - fisheyeEl._listNaturalTop - fisheyeEl._listT;
+      const k = rowFromYBySlot(internalY, fisheyeEl._boundaries);
+      if (k !== fisheyeEl._lastBakedFocus) {
+        bakeLens(k);
+        fisheyeEl._lastBakedFocus = k;
+      }
       setFocusedRow(k);
+      pinFocalAt(cursorY);
     });
     list.addEventListener('click', (e) => {
-      const lRect = list.getBoundingClientRect();
-      const y = e.clientY - lRect.top;
-      if (y < 0 || y > lRect.height) return;
-      const k = Math.round(fractionalRowFromY(y, fisheyeEl._focusMap));
-      applyPalette(k);
+      const cursorY = e.clientY;
+      if (cursorY < fisheyeEl._listNaturalTop ||
+          cursorY > fisheyeEl._listNaturalTop + fisheyeEl._budget) return;
+      // The focal is always at the cursor — that's what pinning
+      // guarantees — so click commits to whatever's currently focal.
+      applyPalette(fisheyeEl._lastBakedFocus);
       closeFisheyeMenu();
     });
     setTimeout(() => document.addEventListener('pointerdown', fisheyeOutside), 0);
@@ -423,5 +447,14 @@
   applyPalette(0);
 </script>
 
+<!-- PostHog + ClickSense -->
+<script>
+!function(t,e){var o,n,p,r;e.__SV||(window.posthog&&window.posthog.__loaded)||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once on".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+posthog.init('phc_UtkQeyklDA8wNmaQ3ZTDYNl9wJ9ExUs3BF1dX22hcJY',{api_host:'https://us.i.posthog.com',person_profiles:'identified_only',persistence:'memory'});
+</script>
+<script src="../../clicksense.js"></script>
+<script>
+if(window.ClickSenseLib&&window.posthog){new ClickSenseLib.ClickSense({onCapture:ClickSenseLib.createPostHogAdapter(),enableApproachDynamics:true});}
+</script>
 </body>
 </html>

@@ -15,7 +15,9 @@ import { describe, it, expect } from 'vitest';
 import {
   bakeHeights,
   bakeCenters,
+  bakeBoundaries,
   rowFromY,
+  rowFromYBySlot,
   fractionalRowFromY,
   precomputeFocusCenters,
   DEFAULT_LENS_CONFIG,
@@ -232,6 +234,50 @@ describe('precomputeFocusCenters', () => {
     bakeHeights(N, 140, BUDGET, CONFIG);
     const afterRows = samplesY.map(y => rowFromY(y, map));
     expect(afterRows).toEqual(beforeRows);
+  });
+});
+
+describe('rowFromYBySlot + bakeBoundaries', () => {
+  it('returns row k for any y inside row k\'s slot', () => {
+    const heights = bakeHeights(N, 50, BUDGET, CONFIG);
+    const b = bakeBoundaries(heights);
+    expect(b.length).toBe(N + 1);
+    expect(b[0]).toBe(0);
+    expect(b[N]).toBeCloseTo(BUDGET, 6);  // total fills budget (raw sum > budget)
+    for (let k = 0; k < N; k++) {
+      const insideY = (b[k] + b[k + 1]) / 2;
+      expect(rowFromYBySlot(insideY, b), `k=${k}`).toBe(k);
+    }
+  });
+
+  it('top edge of row k belongs to row k', () => {
+    const heights = bakeHeights(N, 73, BUDGET, CONFIG);
+    const b = bakeBoundaries(heights);
+    // Pick interior k so b[k] is unambiguous (not 0 or total)
+    for (const k of [1, 30, 73, 100, 146]) {
+      expect(rowFromYBySlot(b[k], b), `k=${k}`).toBe(k);
+    }
+  });
+
+  it('clamps below first boundary to row 0', () => {
+    const b = bakeBoundaries(bakeHeights(N, 0, BUDGET, CONFIG));
+    expect(rowFromYBySlot(-100, b)).toBe(0);
+    expect(rowFromYBySlot(0, b)).toBe(0);
+  });
+
+  it('clamps above last boundary to row N-1', () => {
+    const b = bakeBoundaries(bakeHeights(N, N - 1, BUDGET, CONFIG));
+    expect(rowFromYBySlot(1e9, b)).toBe(N - 1);
+  });
+
+  it('monotone non-decreasing in y', () => {
+    const b = bakeBoundaries(bakeHeights(N, 50, BUDGET, CONFIG));
+    let prev = 0;
+    for (let y = 0; y < b[N]; y += 3) {
+      const r = rowFromYBySlot(y, b);
+      expect(r, `y=${y}`).toBeGreaterThanOrEqual(prev);
+      prev = r;
+    }
   });
 });
 

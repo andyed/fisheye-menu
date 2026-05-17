@@ -20,16 +20,19 @@
 
 export const DEFAULT_LENS_CONFIG = {
   minH:  4,     // hard floor — items at the floor still clickable
-  maxH:  120,   // peak height at the lens centre — generous so focal
-                // pops AND d=2/d=3 are still comfortably clickable
-  shape: 'hyperbolic',
-                // Lens curve. 'hyperbolic' (1/(1+d)) gives a 2× focal-
-                // to-d=1 jump and a *decreasing* ratio further out
-                // (1.5×, 1.33×, 1.25× …) — the focal dominates but
-                // the magnified band tapers smoothly. 'gaussian'
-                // (exp(-d²/(2σ²))) has the opposite shape: gentle
-                // near the centre, steeper in the wings. Keep
-                // 'sigma' below for the Gaussian path.
+  maxH:  120,   // peak height at the lens centre
+  shape: 'exponential',
+                // Lens curve. 'exponential' (αᵈ): CONSTANT ratio
+                // between adjacent rows — every step "feels" the
+                // same size delta, focal-to-d=1 is the same as
+                // d=4-to-d=5. Predictable, balanced. The other
+                // shapes are 'hyperbolic' (1/(1+d) — sharp focal,
+                // gentle tail; ratios DECREASE with distance) and
+                // 'gaussian' (exp(-d²/(2σ²)) — gentle focal, steep
+                // tail; ratios INCREASE with distance).
+  alpha: 0.7,   // Per-step ratio for 'exponential'. 0.7 → adjacent
+                // rows have a 1.43× height ratio. Lower = sharper
+                // focal, higher = flatter band.
   sigma: 3,     // Only used when shape: 'gaussian'.
 };
 
@@ -47,14 +50,17 @@ export const DEFAULT_LENS_CONFIG = {
  *   - sum(heights) ≤ budget
  */
 export function bakeHeights(n, centerRow, budget, config = DEFAULT_LENS_CONFIG) {
-  const { minH, maxH, shape = 'hyperbolic', sigma } = config;
+  const { minH, maxH, shape = 'hyperbolic', sigma, alpha } = config;
   if (n <= 0) return [];
   if (budget <= 0) throw new Error('budget must be > 0');
   if (shape === 'gaussian' && (!sigma || sigma <= 0)) {
     throw new Error('sigma must be > 0 for gaussian shape');
   }
+  if (shape === 'exponential' && (alpha == null || alpha <= 0 || alpha >= 1)) {
+    throw new Error('alpha must be in (0, 1) for exponential shape');
+  }
 
-  const weight = lensWeightFn(shape, sigma);
+  const weight = lensWeightFn(shape, sigma, alpha);
   const heights = new Array(n);
   let total = 0;
   for (let i = 0; i < n; i++) {
@@ -74,22 +80,28 @@ export function bakeHeights(n, centerRow, budget, config = DEFAULT_LENS_CONFIG) 
  * Lens weight function: distance d → magnification weight in [0..1]
  * with w(0) = 1 (focal at full magnification).
  *
- * - 'hyperbolic' (default): w = 1/(1+d). Ratio of adjacent magnifications
- *   *decreases* with distance — focal is 2× d=1, d=1 is 1.5× d=2, etc.
- *   The focal dominates visually while the band tapers smoothly.
+ * - 'exponential' (default): w = αᵈ. CONSTANT ratio between adjacent
+ *   rows — every step has the same multiplicative drop. Predictable,
+ *   balanced feel; small jumps and big jumps both work.
+ *
+ * - 'hyperbolic': w = 1/(1+d). Ratio DECREASES with distance — focal
+ *   is 2× d=1, d=1 is 1.5× d=2, etc. The focal dominates while the
+ *   band tapers smoothly.
  *
  * - 'gaussian': w = exp(-d²/(2σ²)). Soft top near the centre, steeper
- *   shoulders in the wings. Focal is barely bigger than d=1, then the
- *   gradient drops fast. Use when you want a clear "in/out of the lens"
- *   distinction.
+ *   shoulders in the wings. Ratio INCREASES with distance — focal is
+ *   barely bigger than d=1, then the gradient drops fast.
  */
-export function lensWeightFn(shape = 'hyperbolic', sigma) {
+export function lensWeightFn(shape = 'exponential', sigma, alpha = 0.7) {
   if (shape === 'gaussian') {
     const twoSigmaSq = 2 * sigma * sigma;
     return (d) => Math.exp(-(d * d) / twoSigmaSq);
   }
-  // hyperbolic
-  return (d) => 1 / (1 + d);
+  if (shape === 'hyperbolic') {
+    return (d) => 1 / (1 + d);
+  }
+  // exponential
+  return (d) => Math.pow(alpha, d);
 }
 
 /**
@@ -186,6 +198,47 @@ export function fractionalRowFromY(y, centers) {
   const yHi = centers[lo];
   if (yHi === yLo) return lo - 1;
   return (lo - 1) + (y - yLo) / (yHi - yLo);
+}
+
+/**
+ * Cursor y → row by *slot membership*. Returns the row whose rendered
+ * box (top-to-bottom inclusive of top edge) contains y. Use this when
+ * a closest-center mapping would jump too early — e.g. if focal is 80
+ * px and d=1 is 50 px, the closest-center midpoint sits well above the
+ * actual slot boundary, so the user would see focused jump while the
+ * cursor is still visibly inside the focal slot.
+ *
+ * `boundaries` is the cumulative-y array (length n+1) where
+ * boundaries[i] is the top edge of row i. Use `bakeBoundaries` to
+ * compute it from a heights array.
+ *
+ * Binary searches in O(log n).
+ */
+export function rowFromYBySlot(y, boundaries) {
+  if (!boundaries || boundaries.length < 2) return 0;
+  const last = boundaries.length - 2;
+  if (y <= boundaries[0]) return 0;
+  if (y >= boundaries[last + 1]) return last;
+  let lo = 0, hi = last;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (boundaries[mid] <= y) lo = mid;
+    else hi = mid - 1;
+  }
+  return lo;
+}
+
+/**
+ * Cumulative top-edge y-positions for a heights array. boundaries[0] = 0,
+ * boundaries[i] = sum(heights[0..i-1]), boundaries[n] = totalHeight.
+ * Length is heights.length + 1.
+ */
+export function bakeBoundaries(heights) {
+  const n = heights.length;
+  const out = new Array(n + 1);
+  out[0] = 0;
+  for (let i = 0; i < n; i++) out[i + 1] = out[i] + heights[i];
+  return out;
 }
 
 export function rowFromY(y, centers) {
